@@ -1,0 +1,7 @@
+/* Estilos básicos para el componente App */
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+

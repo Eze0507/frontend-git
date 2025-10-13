@@ -1,0 +1,46 @@
+
+@import "tailwindcss";
+
+/* Estilos personalizados para scrollbar del sidebar */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: #374151; /* gray-700 - un poco más claro que bg-gray-800 del sidebar */
+  border-radius: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: #4B5563; /* gray-600 - más claro que el track */
+  border-radius: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6B7280; /* gray-500 - aún más claro al hacer hover */
+}
+
+/* Estilos para scrollbar del contenido principal (más claro) */
+.main-content-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content-scrollbar::-webkit-scrollbar-track {
+  background: #F3F4F6; /* gray-100 - similar al bg del main */
+  border-radius: 4px;
+}
+
+.main-content-scrollbar::-webkit-scrollbar-thumb {
+  background: #D1D5DB; /* gray-300 */
+  border-radius: 4px;
+}
+
+.main-content-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF; /* gray-400 - más oscuro al hacer hover */
+}
+
+/* Animaciones para el sidebar */
+.sidebar-transition {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
