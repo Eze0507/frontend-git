@@ -183,14 +183,14 @@ const ItemVentaList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) =
     ),
     costo: (
       <div className="text-center">
-        <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold shadow-sm bg-gradient-to-r from-purple-400 to-purple-500 text-white">
+        <span className="text-sm font-semibold text-gray-800">
           Bs {item?.costo ? parseFloat(item.costo).toFixed(2) : '0.00'}
         </span>
       </div>
     ),
     precio: (
       <div className="text-center">
-        <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-sm">
+        <span className="text-sm font-semibold text-gray-800">
           Bs. {item?.precio !== undefined ? item.precio : '0.00'}
         </span>
       </div>
@@ -202,9 +202,6 @@ const ItemVentaList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) =
             ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' 
             : 'bg-gradient-to-r from-red-400 to-red-500 text-white'
         }`}>
-          <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
           {item?.stock !== undefined ? item.stock : '0'}
         </span>
       </div>
