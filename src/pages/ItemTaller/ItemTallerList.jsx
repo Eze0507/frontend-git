@@ -140,22 +140,22 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
   ];
   const tableData = filteredItems.map((item) => ({
     codigo: (
-      <div className="text-center font-medium text-gray-900">
+      <div className="text-center font-semibold text-gray-800 tracking-wide">
         {item?.codigo || ''}
       </div>
     ),
     nombre: (
-      <div className="text-left font-medium text-gray-900">
+      <div className="text-left font-semibold text-gray-900">
         {item?.nombre || ''}
       </div>
     ),
     descripcion: (
-      <div className="text-left text-sm text-gray-600 max-w-xs">
+      <div className="text-left text-sm text-gray-700 max-w-xs">
         {item?.descripcion || ''}
       </div>
     ),
     fabricante: (
-      <div className="text-center text-gray-800">
+      <div className="text-center text-gray-700">
         {item?.fabricante || ''}
       </div>
     ),
@@ -165,7 +165,7 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
           <img 
             src={item.imagen} 
             alt={item.nombre || 'Imagen del ítem'} 
-            className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+            className="w-14 h-14 object-contain rounded border border-gray-200 bg-white"
             onError={(e) => {
               e.target.style.display = 'none';
               e.target.nextElementSibling.style.display = 'flex';
@@ -173,7 +173,7 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
           />
         ) : null}
         <div 
-          className="w-16 h-16 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center shadow-sm"
+          className="w-14 h-14 bg-gray-100 border border-gray-200 rounded flex items-center justify-center"
           style={{display: item?.imagen ? 'none' : 'flex'}}
         >
           <span className="text-gray-400 text-xs text-center">Sin imagen</span>
@@ -182,7 +182,7 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
     ),
     costo: (
       <div className="text-center">
-        <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold shadow-sm bg-gradient-to-r from-blue-400 to-blue-500 text-white">
+        <span className="text-base font-medium text-gray-900">
           Bs {item?.costo ? parseFloat(item.costo).toFixed(2) : '0.00'}
         </span>
       </div>
@@ -194,29 +194,22 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
             ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' 
             : 'bg-gradient-to-r from-red-400 to-red-500 text-white'
         }`}>
-          <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
           {item?.stock !== undefined ? item.stock : '0'}
         </span>
       </div>
     ),
     estado: (
       <div className="text-center">
-        <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold shadow-sm ${
-          item?.estado === 'Disponible' 
-            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white' 
-            : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white'
+        <span className={`inline-flex items-center px-4 py-1 rounded-lg text-sm font-semibold shadow-sm ${
+          item?.estado === 'Disponible'
+            ? 'bg-emerald-500 text-white hover:bg-emerald-600 transition-colors' // igual que el botón de ver detalles
+            : 'bg-yellow-500 text-white'
         }`}>
           {item?.estado === 'Disponible' ? (
-            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 mr-1.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          ) : (
-            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          )}
+          ) : null}
           {item?.estado || 'No definido'}
         </span>
       </div>
@@ -248,9 +241,9 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
               placeholder="Buscar por nombre o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-2 border-gray-200 rounded-xl px-4 py-3 pl-12 bg-white text-gray-700 w-96 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="border border-gray-300 rounded-lg px-4 py-2 pl-10 bg-white text-gray-700 w-80 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 shadow-sm"
             />
-            <svg className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             {searchTerm && (
@@ -266,14 +259,19 @@ const ItemTallerList = ({ items, onEdit, onDelete, onAddNew, onView, loading }) 
           </div>
         </div>
       </div>
-      <CustomTable
-        title="Ítems de Taller"
-        columns={columns}
-        data={tableData}
-        onView={(item) => onView(item)}
-        onEdit={(item) => onEdit(item)}
-        onDelete={onDelete}
-      />
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <CustomTable
+          title="Ítems de Taller"
+          columns={columns}
+          data={tableData}
+          onView={(item) => onView(item)}
+          onEdit={(item) => onEdit(item)}
+          onDelete={onDelete}
+          tableClassName="min-w-full bg-white text-gray-900 border-separate border-spacing-0"
+          headerClassName="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-700 uppercase tracking-wider"
+          rowClassName="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+        />
+      </div>
     </div>
   );
 };
