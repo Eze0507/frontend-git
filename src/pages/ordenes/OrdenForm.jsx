@@ -237,33 +237,65 @@ const OrdenForm = ({ onClose, onSave }) => {
 
   // Render del paso 1: Selección/Creación de Cliente
   const renderClienteStep = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-800">Paso 1: Cliente</h3>
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Paso 1: Seleccionar Cliente</h3>
+        <p className="text-gray-600">Elige un cliente existente o crea uno nuevo para la orden de trabajo</p>
+      </div>
       
       {!showClienteForm ? (
-        <div className="space-y-4">
-          <div className="flex space-x-4">
-            <Button 
-              variant="secundario" 
-              onClick={() => setShowClienteForm(true)}
-            >
-              Crear Nuevo Cliente
-            </Button>
-            <Button 
-              variant="primario" 
-              onClick={() => setCurrentStep(2)}
-              disabled={!selectedCliente}
-            >
-              Continuar con Cliente Existente
-            </Button>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 hover:border-blue-300 transition-colors">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Nuevo Cliente</h4>
+                  <p className="text-sm text-gray-600">Registrar un cliente nuevo</p>
+                </div>
+              </div>
+              <Button 
+                variant="primario" 
+                onClick={() => setShowClienteForm(true)}
+                className="w-full"
+              >
+                Crear Nuevo Cliente
+              </Button>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 hover:border-green-300 transition-colors">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Cliente Existente</h4>
+                  <p className="text-sm text-gray-600">Seleccionar un cliente registrado</p>
+                </div>
+              </div>
+              <Button 
+                variant={selectedCliente ? "guardar" : "secundario"}
+                onClick={() => setCurrentStep(2)}
+                disabled={!selectedCliente}
+                className="w-full"
+              >
+                {selectedCliente ? "Continuar" : "Seleccionar Cliente"}
+              </Button>
+            </div>
           </div>
 
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
               Seleccionar Cliente Existente:
             </label>
             <select
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 shadow-sm"
               value={selectedCliente?.id || ""}
               onChange={(e) => {
                 const cliente = clientes.find(c => c.id === parseInt(e.target.value));
@@ -277,136 +309,198 @@ const OrdenForm = ({ onClose, onSave }) => {
                 </option>
               ))}
             </select>
+            {selectedCliente && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h5 className="font-medium text-blue-900 mb-2">Cliente Seleccionado:</h5>
+                <div className="text-sm text-blue-800">
+                  <p><strong>Nombre:</strong> {selectedCliente.nombre} {selectedCliente.apellido}</p>
+                  <p><strong>NIT:</strong> {selectedCliente.nit}</p>
+                  <p><strong>Teléfono:</strong> {selectedCliente.telefono || 'N/A'}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        <form onSubmit={handleCreateCliente} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre *
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={clienteForm.nombre}
-                onChange={(e) => setClienteForm({...clienteForm, nombre: e.target.value})}
-              />
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Apellido *
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={clienteForm.apellido}
-                onChange={(e) => setClienteForm({...clienteForm, apellido: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                NIT *
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={clienteForm.nit}
-                onChange={(e) => setClienteForm({...clienteForm, nit: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={clienteForm.telefono}
-                onChange={(e) => setClienteForm({...clienteForm, telefono: e.target.value})}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Dirección
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={clienteForm.direccion}
-                onChange={(e) => setClienteForm({...clienteForm, direccion: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de Cliente
-              </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={clienteForm.tipo_cliente}
-                onChange={(e) => setClienteForm({...clienteForm, tipo_cliente: e.target.value})}
-              >
-                <option value="NATURAL">Persona Natural</option>
-                <option value="EMPRESA">Empresa</option>
-              </select>
+            <div className="ml-4">
+              <h4 className="text-lg font-semibold text-gray-900">Nuevo Cliente</h4>
+              <p className="text-sm text-gray-600">Completa la información del cliente</p>
             </div>
           </div>
           
-          <div className="flex space-x-4">
-            <Button type="submit" variant="guardar" disabled={loading}>
-              {loading ? "Creando..." : "Crear Cliente"}
-            </Button>
-            <Button 
-              type="button" 
-              variant="cancelar" 
-              onClick={() => setShowClienteForm(false)}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </form>
+          <form onSubmit={handleCreateCliente} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  value={clienteForm.nombre}
+                  onChange={(e) => setClienteForm({...clienteForm, nombre: e.target.value})}
+                  placeholder="Ingrese el nombre"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Apellido *
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  value={clienteForm.apellido}
+                  onChange={(e) => setClienteForm({...clienteForm, apellido: e.target.value})}
+                  placeholder="Ingrese el apellido"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  NIT *
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  value={clienteForm.nit}
+                  onChange={(e) => setClienteForm({...clienteForm, nit: e.target.value})}
+                  placeholder="Ingrese el NIT"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Teléfono
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  value={clienteForm.telefono}
+                  onChange={(e) => setClienteForm({...clienteForm, telefono: e.target.value})}
+                  placeholder="Ingrese el teléfono"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Dirección
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  value={clienteForm.direccion}
+                  onChange={(e) => setClienteForm({...clienteForm, direccion: e.target.value})}
+                  placeholder="Ingrese la dirección"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Tipo de Cliente
+                </label>
+                <select
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  value={clienteForm.tipo_cliente}
+                  onChange={(e) => setClienteForm({...clienteForm, tipo_cliente: e.target.value})}
+                >
+                  <option value="NATURAL">Persona Natural</option>
+                  <option value="EMPRESA">Empresa</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4 pt-4">
+              <Button type="submit" variant="guardar" disabled={loading} className="flex-1">
+                {loading ? "Creando..." : "Crear Cliente"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="cancelar" 
+                onClick={() => setShowClienteForm(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
 
   // Render del paso 2: Selección/Creación de Vehículo
   const renderVehiculoStep = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800">Paso 2: Vehículo</h3>
-        <div className="text-sm text-gray-600">
-          Cliente: {selectedCliente?.nombre} {selectedCliente?.apellido}
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Paso 2: Seleccionar Vehículo</h3>
+        <div className="flex items-center text-gray-600">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Cliente: <span className="font-medium ml-1">{selectedCliente?.nombre} {selectedCliente?.apellido}</span>
         </div>
       </div>
 
       {!showVehiculoForm ? (
-        <div className="space-y-4">
-          <div className="flex space-x-4">
-            <Button 
-              variant="secundario" 
-              onClick={() => setShowVehiculoForm(true)}
-            >
-              Crear Nuevo Vehículo
-            </Button>
-            <Button 
-              variant="primario" 
-              onClick={handleSelectExistingVehiculo}
-              disabled={!selectedVehiculo || loading}
-            >
-              {loading ? "Creando Orden..." : "Crear Orden con Vehículo Existente"}
-            </Button>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200 hover:border-purple-300 transition-colors">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Nuevo Vehículo</h4>
+                  <p className="text-sm text-gray-600">Registrar un vehículo nuevo</p>
+                </div>
+              </div>
+              <Button 
+                variant="primario" 
+                onClick={() => setShowVehiculoForm(true)}
+                className="w-full"
+              >
+                Crear Nuevo Vehículo
+              </Button>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 hover:border-green-300 transition-colors">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Vehículo Existente</h4>
+                  <p className="text-sm text-gray-600">Usar un vehículo registrado</p>
+                </div>
+              </div>
+              <Button 
+                variant={selectedVehiculo ? "guardar" : "secundario"}
+                onClick={handleSelectExistingVehiculo}
+                disabled={!selectedVehiculo || loading}
+                className="w-full"
+              >
+                {loading ? "Creando Orden..." : selectedVehiculo ? "Crear Orden" : "Seleccionar Vehículo"}
+              </Button>
+            </div>
           </div>
 
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
               Vehículos del Cliente:
             </label>
             {getVehiculosDelCliente().length > 0 ? (
               <select
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 shadow-sm"
                 value={selectedVehiculo?.id || ""}
                 onChange={(e) => {
                   const vehiculo = vehiculos.find(v => v.id === parseInt(e.target.value));
@@ -421,10 +515,40 @@ const OrdenForm = ({ onClose, onSave }) => {
                 ))}
               </select>
             ) : (
-              <p className="text-gray-500 italic">
-                Este cliente no tiene vehículos registrados. Cree uno nuevo.
-              </p>
+              <div className="text-center py-8">
+                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0M15 17a2 2 0 104 0" />
+                </svg>
+                <p className="text-gray-500 text-sm">
+                  Este cliente no tiene vehículos registrados. <br />
+                  Debe crear un vehículo nuevo para continuar.
+                </p>
+              </div>
             )}
+            {selectedVehiculo && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <h5 className="font-medium text-green-900 mb-2">Vehículo Seleccionado:</h5>
+                <div className="text-sm text-green-800">
+                  <p><strong>Placa:</strong> {selectedVehiculo.numero_placa}</p>
+                  <p><strong>Marca/Modelo:</strong> {selectedVehiculo.marca_nombre} {selectedVehiculo.modelo_nombre}</p>
+                  <p><strong>Año:</strong> {selectedVehiculo.año || 'N/A'}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-start">
+            <Button 
+              variant="secundario" 
+              onClick={() => setCurrentStep(1)}
+              className="flex items-center"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Volver al Paso 1
+            </Button>
           </div>
         </div>
       ) : (
@@ -513,16 +637,13 @@ const OrdenForm = ({ onClose, onSave }) => {
                 onChange={(e) => setVehiculoForm({...vehiculoForm, tipo: e.target.value})}
               >
                 <option value="">Seleccione tipo...</option>
+                <option value="CAMIONETA">Camioneta</option>
+                <option value="DEPORTIVO">Deportivo</option>
+                <option value="FURGON">Furgón</option>
+                <option value="HATCHBACK">Hatchback</option>
                 <option value="SEDAN">Sedán</option>
                 <option value="SUV">SUV</option>
-                <option value="HATCHBACK">Hatchback</option>
-                <option value="PICKUP">Pickup</option>
-                <option value="COUPE">Coupe</option>
-                <option value="CONVERTIBLE">Convertible</option>
-                <option value="WAGON">Wagon</option>
-                <option value="MINIVAN">Minivan</option>
-                <option value="TRUCK">Camión</option>
-                <option value="MOTORCYCLE">Motocicleta</option>
+                <option value="CITYCAR">CityCar</option>
               </select>
             </div>
           </div>
@@ -555,50 +676,57 @@ const OrdenForm = ({ onClose, onSave }) => {
 
   if (loading && currentStep === 1) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg">
-          <div className="text-center">Cargando datos...</div>
-        </div>
+      <div className="bg-white p-6 rounded-lg">
+        <div className="text-center">Cargando datos...</div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Nueva Orden de Trabajo</h2>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div className="bg-white rounded-xl p-8 w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl border">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Nueva Orden de Trabajo</h2>
+          <p className="text-gray-600 mt-1">Crea una nueva orden siguiendo los pasos</p>
         </div>
+        <button 
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-        {/* Indicador de pasos */}
-        <div className="flex items-center mb-8">
-          <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
-              1
-            </div>
-            <span className="ml-2">Cliente</span>
+      {/* Indicador de pasos mejorado */}
+      <div className="flex items-center mb-10">
+        <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
+            currentStep >= 1 
+              ? 'bg-blue-600 text-white shadow-lg' 
+              : 'bg-gray-200 text-gray-500'
+          }`}>
+            1
           </div>
-          <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-          <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
-              2
-            </div>
-            <span className="ml-2">Vehículo</span>
-          </div>
+          <span className="ml-3 font-medium">Cliente</span>
         </div>
+        <div className={`flex-1 h-0.5 mx-6 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+        <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
+            currentStep >= 2 
+              ? 'bg-blue-600 text-white shadow-lg' 
+              : 'bg-gray-200 text-gray-500'
+          }`}>
+            2
+          </div>
+          <span className="ml-3 font-medium">Vehículo</span>
+        </div>
+      </div>
 
         {/* Contenido del paso actual */}
         {currentStep === 1 && renderClienteStep()}
         {currentStep === 2 && renderVehiculoStep()}
-      </div>
     </div>
   );
 };

@@ -1,8 +1,9 @@
 // src/components/Button.jsx
 import React from "react";
 
-const Button = ({ type = "button", variant = "guardar", onClick, disabled = false, children }) => {
-  let baseClasses = "font-semibold py-2 px-4 rounded-md transition-all duration-300 focus:outline-none";
+const Button = ({ type = "button", variant = "guardar", onClick, disabled = false, children, className = "" }) => {
+  // Use inline-flex and smaller padding by default so icon+label stay on one line
+  let baseClasses = "inline-flex items-center gap-2 text-sm font-semibold py-1 px-3 rounded-md transition-all duration-300 focus:outline-none";
   let colorClasses = "";
 
   switch (variant) {
@@ -30,8 +31,10 @@ const Button = ({ type = "button", variant = "guardar", onClick, disabled = fals
       colorClasses = "bg-gray-200 text-gray-800 hover:bg-gray-300";
   }
 
+  const classes = `${baseClasses} ${colorClasses} ${className}`.trim();
+
   return (
-    <button type={type} onClick={onClick} className={`${baseClasses} ${colorClasses}`} disabled={disabled}>
+    <button type={type} onClick={onClick} className={classes} disabled={disabled}>
       {children}
     </button>
   );

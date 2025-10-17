@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchOrdenById, fetchItemsCatalogo, deleteDetalleOrden, updateOrdenDescripcion, updateOrdenKilometraje, updateOrdenNivelCombustible, updateOrdenObservaciones, addDetalleOrden, updateOrdenEstado } from "../../api/ordenesApi.jsx";
+import { fetchOrdenById, fetchItemsCatalogo, deleteDetalleOrden, updateOrdenDescripcion, updateOrdenKilometraje, updateOrdenNivelCombustible, updateOrdenObservaciones, updateOrdenFechaFinalizacion, addDetalleOrden, updateOrdenEstado } from "../../api/ordenesApi.jsx";
 import { updateVehiculo, toApiVehiculo, fetchAllMarcas, fetchAllModelos, fetchModelosByMarca, fetchAllClientes, fetchVehiculoById } from "../../api/vehiculoApi";
 import Button from "../../components/button.jsx";
 import VehiculoForm from "../vehiculos/VehiculoForm";
+import NotasOrden from "../../components/NotasOrden.jsx";
+import TareasOrden from "../../components/TareasOrden.jsx";
+import InventarioVehiculo from "../../components/InventarioVehiculo.jsx";
+import HistorialInspecciones from "../../components/HistorialInspecciones.jsx";
+import HistorialPruebasRuta from "../../components/HistorialPruebasRuta.jsx";
+import AsignacionesTecnicos from "../../components/AsignacionesTecnicos.jsx";
+import ImagenesOrden from "../../components/ImagenesOrden.jsx";
 
 // Función para mapear los datos del vehículo al formato que espera VehiculoForm
 function mapVehiculoApiToForm(vehiculoApi, ordenApi, marcasList = [], modelosList = []) {
-  console.log('🔄 MAPEO - Datos de entrada:', { vehiculoApi, ordenApi, marcasList: marcasList.length, modelosList: modelosList.length });
-  
   if (!vehiculoApi && !ordenApi) {
-    console.log('❌ MAPEO - No hay datos de vehículo ni orden');
     return null;
   }
   
@@ -50,8 +54,7 @@ function mapVehiculoApiToForm(vehiculoApi, ordenApi, marcasList = [], modelosLis
     modelo_nombre: modeloNombre || vehiculoApi?.modelo_obj?.nombre || vehiculoApi?.modelo_nombre || ordenApi?.vehiculo_modelo || "",
     placa: vehiculoApi?.numero_placa || vehiculoApi?.placa || ordenApi?.vehiculo_placa || ""
   };
-  
-  console.log('✅ MAPEO - Resultado:', mapped);
+
   return mapped;
 }
 
@@ -73,8 +76,15 @@ const OrdenDetalle = () => {
   const [guardandoNivelCombustible, setGuardandoNivelCombustible] = useState(false);
   const [observacionesLocal, setObservacionesLocal] = useState("");
   const [guardandoObservaciones, setGuardandoObservaciones] = useState(false);
+  const [fechaFinalizacionLocal, setFechaFinalizacionLocal] = useState("");
+  const [guardandoFechaFinalizacion, setGuardandoFechaFinalizacion] = useState(false);
   const [showEstadoDropdown, setShowEstadoDropdown] = useState(false);
   const [showVehiculoForm, setShowVehiculoForm] = useState(false);
+  const [showInventarioModal, setShowInventarioModal] = useState(false);
+  const [showInspeccionesModal, setShowInspeccionesModal] = useState(false);
+  const [showPruebaRutaModal, setShowPruebaRutaModal] = useState(false);
+  const [reloadInventario, setReloadInventario] = useState(null);
+  const [inventarioRefreshTrigger, setInventarioRefreshTrigger] = useState(0);
   const [marcas, setMarcas] = useState([]);
   const [modelos, setModelos] = useState([]);
   const [modelosFiltrados, setModelosFiltrados] = useState([]);
@@ -84,7 +94,7 @@ const OrdenDetalle = () => {
     item_personalizado: "",
     cantidad: "",
     precio_unitario: "",
-    descuento: ""
+    descuento_porcentaje: ""
   });
 
   useEffect(() => {
@@ -111,13 +121,6 @@ const OrdenDetalle = () => {
       
       // Primero cargar la orden para obtener el ID del vehículo
       const ordenData = await fetchOrdenById(id);
-      console.log('📋 Orden cargada:', ordenData);
-      console.log('🚗 Datos de vehículo en orden:', {
-        vehiculo_marca: ordenData?.vehiculo_marca,
-        vehiculo_modelo: ordenData?.vehiculo_modelo,
-        vehiculo_placa: ordenData?.vehiculo_placa,
-        vehiculo: ordenData?.vehiculo
-      });
       
       // Cargar datos adicionales en paralelo
       let vehiculoData = null;
@@ -131,9 +134,7 @@ const OrdenDetalle = () => {
       // Cargar vehículo por separado para mejor manejo de errores
       if (ordenData?.vehiculo) {
         try {
-          console.log('🚗 Cargando vehículo con ID:', ordenData.vehiculo);
           vehiculoData = await fetchVehiculoById(ordenData.vehiculo);
-          console.log('🚗 Datos del vehículo desde API:', vehiculoData);
         } catch (vehiculoError) {
           console.error('❌ Error cargando vehículo:', vehiculoError);
           // Intentar usar datos básicos de la orden como fallback
@@ -143,15 +144,11 @@ const OrdenDetalle = () => {
             marca_nombre: ordenData.vehiculo_marca || "",
             modelo_nombre: ordenData.vehiculo_modelo || ""
           };
-          console.log('⚠️ Usando datos básicos del vehículo desde orden:', vehiculoData);
         }
-      } else {
-        console.log('⚠️ La orden no tiene vehículo asociado');
       }
       
       // Mapear los datos del vehículo al formato que espera VehiculoForm
       const vehiculoMapeado = mapVehiculoApiToForm(vehiculoData, ordenData, marcasData, modelosData);
-      console.log('🔄 Vehículo mapeado para formulario:', vehiculoMapeado);
       
       setOrden(ordenData);
       setVehiculo(vehiculoMapeado);
@@ -162,13 +159,19 @@ const OrdenDetalle = () => {
       setDescripcionLocal(ordenData.falloRequerimiento || ordenData.descripcion || "");
       setKilometrajeLocal(ordenData.kilometraje || "");
       
-      // Inicializar nivel de combustible de forma más explícita
+      // Inicializar nivel de combustible usando el campo correcto del objeto transformado
       const nivelCombustible = ordenData.nivel_combustible !== undefined && ordenData.nivel_combustible !== null 
         ? parseInt(ordenData.nivel_combustible) 
         : 0;
       setNivelCombustibleLocal(nivelCombustible);
       
       setObservacionesLocal(ordenData.observaciones || "");
+      
+      // Inicializar fecha de finalización (convertir a formato YYYY-MM-DD para input date)
+      const fechaFinalizacion = ordenData.fechaFinalizacion 
+        ? new Date(ordenData.fechaFinalizacion).toISOString().split('T')[0]
+        : "";
+      setFechaFinalizacionLocal(fechaFinalizacion);
       
       // DEBUG: Verificar valores iniciales para auto-guardado
       console.log('🔧 VALORES INICIALES CARGADOS:', {
@@ -179,15 +182,7 @@ const OrdenDetalle = () => {
         nivel_combustible_tipo: typeof ordenData.nivel_combustible,
         observaciones: ordenData.observaciones || ""
       });
-      
-      // DEBUG: Mostrar información final de vehículo para la UI
-      console.log('🎯 INFO FINAL PARA UI:', {
-        orden_vehiculo_marca: ordenData?.vehiculo_marca,
-        orden_vehiculo_modelo: ordenData?.vehiculo_modelo,
-        vehiculo_mapeado_marca_nombre: vehiculoMapeado?.marca_nombre,
-        vehiculo_mapeado_modelo_nombre: vehiculoMapeado?.modelo_nombre,
-        final_display: `${ordenData?.vehiculo_marca || vehiculoMapeado?.marca_nombre || "Sin marca"} ${ordenData?.vehiculo_modelo || vehiculoMapeado?.modelo_nombre || "Sin modelo"}`
-      });
+
     } catch (error) {
       console.error("Error cargando datos:", error);
       alert("Error al cargar los datos de la orden. Verifica que la orden existe.");
@@ -196,6 +191,16 @@ const OrdenDetalle = () => {
     }
   };  const handleAddItem = () => {
     setShowAddForm(true);
+  };
+
+  // Imprimir orden (usa window.print por defecto, puede reemplazarse por función más específica)
+  const handlePrint = () => {
+    try {
+      window.print();
+    } catch (e) {
+      console.error('Error al imprimir:', e);
+      alert('No se pudo iniciar la impresión.');
+    }
   };
 
   const handleSaveItem = async () => {
@@ -214,22 +219,21 @@ const OrdenDetalle = () => {
       // Convertir valores a números para el cálculo
       const precio = parseFloat(newItem.precio_unitario || 0);
       const cantidad = parseInt(newItem.cantidad || 1); // Usar 1 como default si está vacío
-      const descuento = parseFloat(newItem.descuento || 0);
+      const descuento_porcentaje = parseFloat(newItem.descuento_porcentaje || 0);
       
       // Preparar el detalle para enviar al backend
       const detalleParaBackend = {
         orden_trabajo: orden.id,
         cantidad: cantidad,
         precio_unitario: precio,
-        descuento: descuento,
+        descuento: 0,
+        descuento_porcentaje: descuento_porcentaje,
         // Enviar el item del catálogo O el item personalizado, pero no ambos
         ...(tipoItem === "catalogo" 
           ? { item: newItem.item_id, item_personalizado: null }
           : { item: null, item_personalizado: newItem.item_personalizado }
         )
       };
-
-      console.log('Guardando detalle en backend:', detalleParaBackend);
 
       // Guardar en el backend
       const detalleGuardado = await addDetalleOrden(orden.id, detalleParaBackend);
@@ -261,12 +265,10 @@ const OrdenDetalle = () => {
         item_personalizado: "",
         cantidad: "",
         precio_unitario: "",
-        descuento: ""
+        descuento_porcentaje: ""
       });
       setTipoItem("catalogo");
       setShowAddForm(false);
-
-      console.log('Detalle guardado exitosamente');
       
     } catch (error) {
       console.error('Error guardando detalle:', error);
@@ -280,7 +282,7 @@ const OrdenDetalle = () => {
       item_personalizado: "",
       cantidad: "",
       precio_unitario: "",
-      descuento: ""
+      descuento_porcentaje: ""
     });
     setTipoItem("catalogo");
     setShowAddForm(false);
@@ -302,7 +304,6 @@ const OrdenDetalle = () => {
   // Función para manejar cambio de estado
   const handleEstadoChange = async (nuevoEstado) => {
     try {
-      console.log('Cambiando estado a:', nuevoEstado);
       const ordenActualizada = await updateOrdenEstado(orden.id, nuevoEstado);
       
       // Actualizar el estado local
@@ -312,7 +313,6 @@ const OrdenDetalle = () => {
       }));
       
       setShowEstadoDropdown(false);
-      console.log('Estado actualizado exitosamente');
     } catch (error) {
       console.error('Error actualizando estado:', error);
       alert('Error al actualizar el estado. Por favor, intenta de nuevo.');
@@ -333,12 +333,6 @@ const OrdenDetalle = () => {
 
   // Funciones para manejo del vehículo
   const handleEditVehiculo = () => {
-    console.log('🔧 EDITANDO VEHÍCULO - Datos actuales:', {
-      vehiculo: vehiculo,
-      orden: orden,
-      marcas: marcas,
-      clientes: clientes
-    });
     setShowVehiculoForm(true);
   };
 
@@ -346,7 +340,6 @@ const OrdenDetalle = () => {
     try {
       setLoading(true);
       
-      console.log('💾 Guardando cambios del vehículo:', vehiculoData);
       await updateVehiculo(vehiculo.id, toApiVehiculo(vehiculoData));
       
       // Recargar los datos del vehículo desde la API del vehículo
@@ -368,6 +361,24 @@ const OrdenDetalle = () => {
     setShowVehiculoForm(false);
   };
 
+  const handleOpenInventarioModal = () => {
+    setShowInventarioModal(true);
+    // Incrementar el trigger para forzar recarga
+    setInventarioRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleInventarioLoad = (reloadFunction) => {
+    setReloadInventario(() => reloadFunction);
+  };
+
+  const handleOpenInspeccionesModal = () => {
+    setShowInspeccionesModal(true);
+  };
+
+  const handleOpenPruebaRutaModal = () => {
+    setShowPruebaRutaModal(true);
+  };
+
   // useEffect para auto-guardar la descripción con debounce
   useEffect(() => {
     if (!orden || !orden.id) return;
@@ -378,8 +389,14 @@ const OrdenDetalle = () => {
       // Solo guardar si la descripción ha cambiado
       if (descripcionLocal !== descripcionOriginal) {
         try {
+          console.log('🔄 Guardando descripción automáticamente:', {
+            ordenId: orden.id,
+            descripcionLocal,
+            descripcionOriginal
+          });
           setGuardandoDescripcion(true);
-          await updateOrdenDescripcion(orden.id, descripcionLocal);
+          const response = await updateOrdenDescripcion(orden.id, descripcionLocal);
+          console.log('✅ Descripción guardada exitosamente:', response);
           
           // Actualizar el estado local de la orden
           setOrden(prevOrden => ({
@@ -388,7 +405,7 @@ const OrdenDetalle = () => {
             falloRequerimiento: descripcionLocal
           }));
         } catch (error) {
-          console.error('Error guardando descripción:', error);
+          console.error('❌ Error guardando descripción:', error);
         } finally {
           setGuardandoDescripcion(false);
         }
@@ -437,22 +454,9 @@ const OrdenDetalle = () => {
         ? parseInt(orden.nivel_combustible) 
         : 0;
       
-      console.log('🔥 DEBUG NIVEL COMBUSTIBLE:', {
-        nivelCombustibleLocal,
-        nivelOriginal,
-        orden_nivel_combustible: orden.nivel_combustible,
-        cambio_detectado: nivelCombustibleLocal !== nivelOriginal,
-        tipos: {
-          local: typeof nivelCombustibleLocal,
-          original: typeof nivelOriginal
-        },
-        inicializado: nivelCombustibleLocal !== null
-      });
-      
       // Solo guardar si el nivel de combustible ha cambiado
       if (nivelCombustibleLocal !== nivelOriginal) {
         try {
-          console.log('💾 Guardando nivel de combustible:', nivelCombustibleLocal);
           setGuardandoNivelCombustible(true);
           await updateOrdenNivelCombustible(orden.id, nivelCombustibleLocal);
           
@@ -461,7 +465,6 @@ const OrdenDetalle = () => {
             ...prevOrden,
             nivel_combustible: nivelCombustibleLocal
           }));
-          console.log('✅ Nivel de combustible guardado exitosamente');
         } catch (error) {
           console.error('Error guardando nivel de combustible:', error);
         } finally {
@@ -475,7 +478,7 @@ const OrdenDetalle = () => {
 
   // useEffect adicional para sincronizar el estado local cuando cambia la orden
   useEffect(() => {
-    if (orden && orden.id && (orden.nivel_combustible !== undefined && orden.nivel_combustible !== null)) {
+    if (orden && orden.id && orden.nivel_combustible !== undefined && orden.nivel_combustible !== null) {
       const nivelFromOrden = parseInt(orden.nivel_combustible);
       
       console.log('🔄 SINCRONIZANDO NIVEL COMBUSTIBLE:', {
@@ -485,8 +488,8 @@ const OrdenDetalle = () => {
         necesita_sync: nivelFromOrden !== nivelCombustibleLocal
       });
       
-      // Solo actualizar si es diferente y el estado local no está inicializado o es diferente
-      if (nivelCombustibleLocal === null || nivelFromOrden !== nivelCombustibleLocal) {
+      // Solo actualizar si es diferente
+      if (nivelFromOrden !== nivelCombustibleLocal) {
         console.log('⚡ Sincronizando nivel de combustible a:', nivelFromOrden);
         setNivelCombustibleLocal(nivelFromOrden);
       }
@@ -521,6 +524,39 @@ const OrdenDetalle = () => {
 
     return () => clearTimeout(timeoutId);
   }, [observacionesLocal, orden]);
+
+  // useEffect para auto-guardar la fecha de finalización
+  useEffect(() => {
+    if (!orden || !orden.id) return;
+
+    const timeoutId = setTimeout(async () => {
+      const fechaOriginal = orden.fechaFinalizacion 
+        ? new Date(orden.fechaFinalizacion).toISOString().split('T')[0]
+        : "";
+      
+      // Solo guardar si la fecha de finalización ha cambiado
+      if (fechaFinalizacionLocal !== fechaOriginal) {
+        try {
+          console.log('💾 Guardando fecha de finalización:', fechaFinalizacionLocal);
+          setGuardandoFechaFinalizacion(true);
+          await updateOrdenFechaFinalizacion(orden.id, fechaFinalizacionLocal);
+          
+          // Actualizar el estado local de la orden
+          setOrden(prevOrden => ({
+            ...prevOrden,
+            fechaFinalizacion: fechaFinalizacionLocal
+          }));
+          console.log('✅ Fecha de finalización guardada exitosamente');
+        } catch (error) {
+          console.error('Error guardando fecha de finalización:', error);
+        } finally {
+          setGuardandoFechaFinalizacion(false);
+        }
+      }
+    }, 1000); // Guardar después de 1 segundo
+
+    return () => clearTimeout(timeoutId);
+  }, [fechaFinalizacionLocal, orden]);
 
   const handleDeleteItem = async (index) => {
     try {
@@ -575,7 +611,9 @@ const OrdenDetalle = () => {
     }, 0);
 
     const descuentoTotal = orden.detalles.reduce((sum, detalle) => {
-      return sum + parseFloat(detalle.descuento || 0);
+      const subtotalDetalle = (parseFloat(detalle.precio_unitario || 0) * parseInt(detalle.cantidad || 0));
+      const descuentoPorcentaje = subtotalDetalle * (parseFloat(detalle.descuento_porcentaje || 0) / 100);
+      return sum + descuentoPorcentaje;
     }, 0);
 
     const subtotalConDescuento = subtotal - descuentoTotal;
@@ -616,11 +654,8 @@ const OrdenDetalle = () => {
     { id: "vehiculo", label: "Vehículo" },
     { id: "fotos", label: "Fotos" },
     { id: "notas", label: "Notas" },
-    { id: "informe", label: "Informe" },
     { id: "tareas", label: "Tareas" },
-    { id: "citas", label: "Citas" },
-    { id: "pago", label: "Pago" },
-    { id: "info", label: "Info" }
+    { id: "tecnicos", label: "Técnicos" }
   ];
 
   return (
@@ -645,76 +680,76 @@ const OrdenDetalle = () => {
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
-              <span className="text-sm text-gray-300">1:12 PM</span>
+              
+              {/* Selector de fecha de finalización */}
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+                <input
+                  type="date"
+                  value={fechaFinalizacionLocal}
+                  onChange={(e) => setFechaFinalizacionLocal(e.target.value)}
+                  className="bg-white/10 text-white text-sm border border-white/10 rounded px-2 py-1 outline-none cursor-pointer hover:bg-white/15 focus:bg-white/20 focus:ring-2 focus:ring-white/25"
+                  title="Fecha de finalización"
+                />
+                {guardandoFechaFinalizacion && (
+                  <div className="w-3 h-3 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                )}
+              </div>
+              
               <div className="w-4 h-4 bg-red-500 rounded"></div>
             </div>
           </div>
           
           <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm">Atendido por</span>
+            {/* Botón imprimir (móvil/compacto) colocado junto al dropdown de estado */}
+            <div>
+              <button
+                onClick={handlePrint}
+                title="Imprimir orden"
+                className="w-9 h-9 bg-white rounded-md shadow-sm flex items-center justify-center hover:bg-gray-100 mr-1"
+              >
+                <svg className="w-4 h-4 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6 2a2 2 0 00-2 2v3h2V4h8v3h2V4a2 2 0 00-2-2H6z" />
+                  <path d="M4 9h12v5H4zM6 14v3h8v-3H6z" />
+                </svg>
+              </button>
             </div>
-            
-            <div className="flex space-x-2">
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+
+            {/* Dropdown de estado */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowEstadoDropdown(!showEstadoDropdown)}
+                className={`px-4 py-2 rounded text-sm font-medium ${estadoActual.color} text-white flex items-center space-x-2`}
+              >
+                <span>{estadoActual.label}</span>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2v-4a2 2 0 00-2-2h-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm4 7H3v3h14v-3z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <div className="w-1 h-6 bg-gray-600"></div>
               
-              {/* Dropdown de estado */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowEstadoDropdown(!showEstadoDropdown)}
-                  className={`px-4 py-2 rounded text-sm font-medium ${estadoActual.color} text-white flex items-center space-x-2`}
-                >
-                  <span>{estadoActual.label}</span>
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {showEstadoDropdown && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                    {estadosDisponibles.map((estado) => (
-                      <button
-                        key={estado.value}
-                        onClick={() => handleEstadoChange(estado.value)}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2 ${
-                          estado.value === orden?.estado ? 'bg-gray-50 font-medium' : ''
-                        }`}
-                      >
-                        <div className={`w-3 h-3 rounded-full ${estado.color.split(' ')[0]}`}></div>
-                        <span className="text-gray-800">{estado.label}</span>
-                        {estado.value === orden?.estado && (
-                          <svg className="w-4 h-4 ml-auto text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {showEstadoDropdown && (
+                <div className="absolute top-full right-0 mt-1 w-36 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                  {estadosDisponibles.map((estado) => (
+                    <button
+                      key={estado.value}
+                      onClick={() => handleEstadoChange(estado.value)}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2 ${
+                        estado.value === orden?.estado ? 'bg-gray-50 font-medium' : ''
+                      }`}
+                    >
+                      <div className={`w-3 h-3 rounded-full ${estado.color.split(' ')[0]}`}></div>
+                      <span className="text-gray-800">{estado.label}</span>
+                      {estado.value === orden?.estado && (
+                        <svg className="w-4 h-4 ml-auto text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -722,50 +757,50 @@ const OrdenDetalle = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Contenido principal */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 p-4 overflow-y-auto">
           {/* Información del cliente */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">INFORMACIÓN DEL CLIENTE</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium mb-2 text-gray-800">INFORMACIÓN DEL CLIENTE</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center space-x-2 mb-1">
+                  <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-semibold text-lg">{orden.cliente}</span>
+                  <span className="font-semibold text-sm">{orden.cliente}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
-                  <span className="text-gray-600">{orden.clienteTelefono || "+59189456789"}</span>
+                  <span className="text-sm text-gray-600">{orden.clienteTelefono || "+59189456789"}</span>
                 </div>
               </div>
             </div>
             
             {/* Fechas importantes */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 <div>
                   <span className="text-gray-500">Creación:</span>
-                  <div className="font-medium">{new Date(orden.fechaCreacion).toLocaleDateString()}</div>
+                  <div className="font-medium text-xs">{new Date(orden.fechaCreacion).toLocaleDateString()}</div>
                 </div>
                 {orden.fechaInicio && (
                   <div>
                     <span className="text-gray-500">Inicio:</span>
-                    <div className="font-medium">{new Date(orden.fechaInicio).toLocaleDateString()}</div>
+                    <div className="font-medium text-xs">{new Date(orden.fechaInicio).toLocaleDateString()}</div>
                   </div>
                 )}
                 {orden.fechaFinalizacion && (
                   <div>
                     <span className="text-gray-500">Finalización:</span>
-                    <div className="font-medium">{new Date(orden.fechaFinalizacion).toLocaleDateString()}</div>
+                    <div className="font-medium text-xs">{new Date(orden.fechaFinalizacion).toLocaleDateString()}</div>
                   </div>
                 )}
                 {orden.fechaEntrega && (
                   <div>
                     <span className="text-gray-500">Entrega:</span>
-                    <div className="font-medium">{new Date(orden.fechaEntrega).toLocaleDateString()}</div>
+                    <div className="font-medium text-xs">{new Date(orden.fechaEntrega).toLocaleDateString()}</div>
                   </div>
                 )}
               </div>
@@ -773,8 +808,8 @@ const OrdenDetalle = () => {
           </div>
 
           {/* Falla o requerimiento */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800 flex items-center">
+          <div className="mb-4">
+            <h3 className="text-sm font-medium mb-2 text-gray-800 flex items-center">
               FALLA O REQUERIMIENTO
               {guardandoDescripcion && (
                 <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
@@ -782,27 +817,27 @@ const OrdenDetalle = () => {
                 </span>
               )}
             </h3>
-            <div className="mb-3">
+            <div className="mb-2">
               <textarea
                 placeholder="Agrega una descripción"
                 value={descripcionLocal}
                 onChange={handleDescripcionChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 rows="3"
               />
             </div>
           </div>
 
           {/* Producto o servicio */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">PRODUCTOS Y SERVICIOS</h3>
+          <div className="mb-4">
+            <h3 className="text-sm font-medium mb-2 text-gray-800">PRODUCTOS Y SERVICIOS</h3>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                <div className="grid gap-4 text-sm font-medium text-gray-600" style={{gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto"}}>
+              <div className="bg-gray-50 px-3 py-1 border-b border-gray-200">
+                <div className="grid gap-2 text-xs font-medium text-gray-600" style={{gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto"}}>
                   <div>ITEM</div>
                   <div>CANTIDAD</div>
                   <div>PRECIO</div>
-                  <div>DESC</div>
+                  <div>DESC %</div>
                   <div>TOTAL</div>
                   <div></div>
                 </div>
@@ -811,21 +846,24 @@ const OrdenDetalle = () => {
               {/* Mostrar detalles reales de la orden */}
               {orden.detalles && orden.detalles.length > 0 ? (
                 orden.detalles.map((detalle, index) => (
-                  <div key={index} className="p-4 border-b border-gray-100 last:border-b-0">
-                    <div className="grid gap-4 items-center" style={{gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto"}}>
-                      <div className="text-sm font-medium">
+                  <div key={index} className="p-2 border-b border-gray-100 last:border-b-0">
+                    <div className="grid gap-2 items-center" style={{gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto"}}>
+                      <div className="text-xs font-medium">
                         {detalle.nombre_item || detalle.item_personalizado || "Item sin nombre"}
                       </div>
-                      <div className="text-sm">{detalle.cantidad}</div>
-                      <div className="text-sm">Bs {parseFloat(detalle.precio_unitario).toFixed(2)}</div>
-                      <div className="text-sm">
-                        {detalle.descuento > 0 ? `Bs ${parseFloat(detalle.descuento).toFixed(2)}` : '-'}
+                      <div className="text-xs">{detalle.cantidad}</div>
+                      <div className="text-xs">Bs {parseFloat(detalle.precio_unitario).toFixed(2)}</div>
+                      <div className="text-xs">
+                        {detalle.descuento_porcentaje > 0 
+                          ? `${parseFloat(detalle.descuento_porcentaje).toFixed(1)}%` 
+                          : '-'
+                        }
                       </div>
-                      <div className="text-sm font-semibold">Bs{parseFloat(detalle.total).toFixed(2)}</div>
+                      <div className="text-xs font-semibold">Bs{parseFloat(detalle.total).toFixed(2)}</div>
                       <div className="flex justify-center">
                         <button
                           onClick={() => handleDeleteItem(index)}
-                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 p-0 rounded hover:bg-red-50"
                           title="Eliminar item"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -837,18 +875,18 @@ const OrdenDetalle = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-8 text-center text-gray-500">
-                  <div className="mb-2">No hay productos o servicios agregados</div>
-                  <div className="text-sm">Haz clic en "Agregar nuevo producto o servicio" para empezar</div>
+                <div className="p-4 text-center text-gray-500">
+                  <div className="mb-1">No hay productos o servicios agregados</div>
+                  <div className="text-xs">Haz clic en "Agregar nuevo producto o servicio" para empezar</div>
                 </div>
               )}
 
               {/* Formulario para agregar nuevo item */}
               {showAddForm && (
-                <div className="p-4 border-b border-gray-200 bg-blue-50">
+                <div className="p-2 border-b border-gray-200 bg-blue-50">
                   {/* Selector de tipo de item */}
-                  <div className="mb-3">
-                    <div className="flex space-x-4">
+                  <div className="mb-2">
+                    <div className="flex space-x-3 text-sm">
                       <label className="flex items-center">
                         <input
                           type="radio"
@@ -874,13 +912,13 @@ const OrdenDetalle = () => {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 items-center" style={{gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto"}}>
+                  <div className="grid gap-2 items-center" style={{gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto"}}>
                     <div>
                       {tipoItem === "catalogo" ? (
                         <select
                           value={newItem.item_id || ""}
                           onChange={(e) => handleItemCatalogoChange(e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Seleccionar item...</option>
                           {itemsCatalogo.map((item) => (
@@ -895,7 +933,7 @@ const OrdenDetalle = () => {
                           placeholder="Nombre del item personalizado"
                           value={newItem.item_personalizado}
                           onChange={(e) => handleInputChange('item_personalizado', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       )}
                     </div>
@@ -909,7 +947,7 @@ const OrdenDetalle = () => {
                           const value = e.target.value;
                           handleInputChange('cantidad', value === "" ? "" : parseInt(value) || "");
                         }}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </div>
                     <div>
@@ -923,25 +961,33 @@ const OrdenDetalle = () => {
                           const value = e.target.value;
                           handleInputChange('precio_unitario', value === "" ? 0 : parseFloat(value));
                         }}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </div>
                     <div>
                       <input
                         type="number"
-                        step="0.01"
+                        step="0.1"
                         min="0"
-                        placeholder="0.00"
-                        value={newItem.descuento || ""}
+                        max="100"
+                        placeholder="0.0"
+                        value={newItem.descuento_porcentaje || ""}
                         onChange={(e) => {
                           const value = e.target.value;
-                          handleInputChange('descuento', value === "" ? 0 : parseFloat(value));
+                          handleInputChange('descuento_porcentaje', value === "" ? 0 : parseFloat(value));
                         }}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </div>
-                    <div className="text-sm font-medium text-blue-600">
-                      Bs {((parseFloat(newItem.precio_unitario) || 0) * (parseInt(newItem.cantidad) || 1) - (parseFloat(newItem.descuento) || 0)).toFixed(2)}
+                    <div className="text-xs font-medium text-blue-600">
+                      Bs {(() => {
+                        const precio = parseFloat(newItem.precio_unitario) || 0;
+                        const cantidad = parseInt(newItem.cantidad) || 1;
+                        const subtotal = precio * cantidad;
+                        const porcentaje = parseFloat(newItem.descuento_porcentaje) || 0;
+                        const descuento = subtotal * (porcentaje / 100);
+                        return (subtotal - descuento).toFixed(2);
+                      })()}
                     </div>
                     <div className="flex space-x-1">
                       <button
@@ -961,7 +1007,7 @@ const OrdenDetalle = () => {
                 </div>
               )}
             </div>
-            <div className="mt-3">
+            <div className="mt-2">
               <button 
                 onClick={handleAddItem}
                 disabled={showAddForm}
@@ -971,10 +1017,10 @@ const OrdenDetalle = () => {
                     : 'text-blue-600 hover:text-blue-800'
                 }`}
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                 </svg>
-                <span>Agregar nuevo producto o servicio</span>
+                <span className="text-xs">Agregar nuevo producto o servicio</span>
               </button>
             </div>
           </div>
@@ -1009,15 +1055,15 @@ const OrdenDetalle = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+  <div className="w-72 bg-white border-l border-gray-200 flex flex-col">
           {/* Tabs */}
           <div className="border-b border-gray-200">
-            <div className="flex overflow-x-auto">
+            <div className="flex gap-2 flex-wrap">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
+                  className={`px-2 py-1 text-xs font-medium border-b-2 ${
                     activeTab === tab.id
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700"
@@ -1032,7 +1078,7 @@ const OrdenDetalle = () => {
           {/* Contenido del tab activo */}
           <div className="flex-1 p-4 overflow-y-auto">
             {activeTab === "vehiculo" && (
-              <div className="space-y-4">
+              <div className="space-y-3 text-sm">
                 {/* Información del vehículo */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -1040,7 +1086,7 @@ const OrdenDetalle = () => {
                       <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
                         <span className="text-xs font-bold">T</span>
                       </div>
-                      <span className="font-semibold">
+                      <span className="text-sm font-medium">
                         {orden?.vehiculo_marca || vehiculo?.marca_nombre || "Sin marca"} {orden?.vehiculo_modelo || vehiculo?.modelo_nombre || "Sin modelo"}
                       </span>
                     </div>
@@ -1058,7 +1104,7 @@ const OrdenDetalle = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs text-gray-600">
                     <div>{vehiculo?.placa || vehiculo?.numero_placa || orden?.vehiculo_placa || "Sin placa"}</div>
                     <div>{vehiculo?.año || "Sin año"} - {vehiculo?.color || "Sin color"}</div>
                   </div>
@@ -1093,44 +1139,38 @@ const OrdenDetalle = () => {
                       </span>
                     )}
                   </label>
-                  <div className="space-y-3">
-                    {/* Indicador visual */}
-                    <div className="flex items-center space-x-2">
-                      <div className="flex-1 bg-gray-200 rounded-full h-3 relative">
+                  <div className="space-y-2">
+                    {/* Indicador visual (más delgado) */}
+                    <div className="flex items-center">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2 relative">
                         <div 
-                          className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${nivelCombustibleLocal !== null ? (nivelCombustibleLocal / 4) * 100 : 0}%` }}
                         ></div>
                       </div>
-                      <div className="flex space-x-1 text-xs text-gray-600">
-                        <span>E</span>
-                        <span>1/4</span>
-                        <span>1/2</span>
-                        <span>3/4</span>
-                        <span>F</span>
-                      </div>
                     </div>
                     
-                    {/* Controles de selección */}
-                    <div className="flex space-x-2">
+                    {/* Controles de selección (más compactos, ancho fijo) */}
+                    <div className="flex gap-2">
                       {[
-                        { value: 0, label: 'E (Vacío)' },
+                        { value: 0, label: 'E' },
                         { value: 1, label: '1/4' },
                         { value: 2, label: '1/2' },
                         { value: 3, label: '3/4' },
-                        { value: 4, label: 'F (Lleno)' }
+                        { value: 4, label: 'F' }
                       ].map((nivel) => (
                         <button
                           key={nivel.value}
                           onClick={() => setNivelCombustibleLocal(nivel.value)}
                           disabled={nivelCombustibleLocal === null}
-                          className={`flex-1 py-1 px-2 text-xs rounded-md border transition-colors ${
+                          className={`w-12 h-8 flex items-center justify-center text-[12px] rounded-md border transition-colors ${
                             nivelCombustibleLocal === nivel.value
                               ? 'bg-blue-500 text-white border-blue-500'
                               : nivelCombustibleLocal === null
                               ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                           }`}
+                          title={nivel.label}
                         >
                           {nivel.label}
                         </button>
@@ -1141,22 +1181,36 @@ const OrdenDetalle = () => {
 
                 {/* Botones de inspección */}
                 <div className="space-y-2">
-                  <button className="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-800 flex items-center justify-center space-x-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z" />
-                    </svg>
-                    <span>Inspección de ingreso a taller</span>
-                  </button>
-                  <button className="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-800">
+                  <button 
+                    onClick={handleOpenInspeccionesModal}
+                    className="w-full bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-800"
+                  >
                     Inspecciones
+                  </button>
+                  <button 
+                    onClick={handleOpenInventarioModal}
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span>Inventario del vehículo</span>
+                  </button>
+                  <button 
+                    onClick={handleOpenPruebaRutaModal}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" clipRule="evenodd" />
+                    </svg>
+                    <span>Prueba de Ruta</span>
                   </button>
                 </div>
 
                 {/* Estado general del vehículo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Estado general del vehículo
+                    Estado del vehículo
                     {guardandoObservaciones && (
                       <span className="ml-2 text-xs text-blue-600">
                         Guardando...
@@ -1172,45 +1226,28 @@ const OrdenDetalle = () => {
                   />
                 </div>
 
-                {/* Inventario del vehículo */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Inventario del vehículo</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {Object.entries(orden.inventario || {}).map(([item, checked]) => (
-                      <label key={item} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          defaultChecked={checked}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="capitalize">{item.replace(/([A-Z])/g, ' $1').trim()}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Botones de acción */}
-                <div className="space-y-2 pt-4 border-t border-gray-200">
-                  <button className="w-full border border-blue-600 text-blue-600 py-2 px-4 rounded-md hover:bg-blue-50 flex items-center justify-center space-x-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                    <span>Firmar</span>
-                  </button>
-                  <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center space-x-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2v-4a2 2 0 00-2-2h-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm4 7H3v3h14v-3z" clipRule="evenodd" />
-                    </svg>
-                    <span>Imprimir orden</span>
-                  </button>
-                </div>
+                {/* Print moved to header */}
               </div>
             )}
 
-            {activeTab !== "vehiculo" && (
-              <div className="text-center text-gray-500 py-8">
-                Contenido de {tabs.find(t => t.id === activeTab)?.label} próximamente
-              </div>
+            {activeTab === "notas" && (
+              <NotasOrden ordenId={id} />
+            )}
+
+            {activeTab === "tareas" && (
+              <TareasOrden ordenId={id} />
+            )}
+
+            {activeTab === "inventario" && (
+              <InventarioVehiculo ordenId={id} />
+            )}
+
+            {activeTab === "fotos" && (
+              <ImagenesOrden ordenId={id} />
+            )}
+
+            {activeTab === "tecnicos" && (
+              <AsignacionesTecnicos ordenId={id} />
             )}
           </div>
         </div>
@@ -1229,6 +1266,82 @@ const OrdenDetalle = () => {
               onCancel={handleCancelVehiculo}
               loading={loading}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Inventario */}
+      {showInventarioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Inventario del Vehículo
+              </h2>
+              <button
+                onClick={() => setShowInventarioModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[60vh]">
+              <InventarioVehiculo 
+                ordenId={id} 
+                onLoad={handleInventarioLoad} 
+                refreshTrigger={inventarioRefreshTrigger}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Inspecciones */}
+      {showInspeccionesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[85vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Historial de Inspecciones
+              </h2>
+              <button
+                onClick={() => setShowInspeccionesModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[75vh]">
+              <HistorialInspecciones ordenId={id} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Prueba de Ruta */}
+      {showPruebaRutaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[85vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Historial de Pruebas de Ruta
+              </h2>
+              <button
+                onClick={() => setShowPruebaRutaModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[75vh]">
+              <HistorialPruebasRuta ordenId={id} />
+            </div>
           </div>
         </div>
       )}

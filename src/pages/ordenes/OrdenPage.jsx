@@ -146,11 +146,14 @@ const OrdenPage = () => {
         onEstadoChange={handleEstadoChange}
       />
       
+      {/* Modal de Formulario con overlay */}
       {showOrdenForm && (
-        <OrdenForm 
-          onClose={handleCloseForm}
-          onSave={handleSaveOrden}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <OrdenForm 
+            onClose={handleCloseForm}
+            onSave={handleSaveOrden}
+          />
+        </div>
       )}
     </div>
   );
