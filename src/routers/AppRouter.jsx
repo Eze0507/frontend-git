@@ -6,7 +6,7 @@ import UserPage from "@/pages/usuario/UserPage.jsx"; // <-- CORREGIDO
 import CargoPage from "@/pages/cargo/cargoPage.jsx"; // <-- CORREGIDO
 import HomePage from "@/pages/home/HomePage.jsx"; // <-- CORREGIDO
 import LoginPage from "@/pages/login/loginPage.jsx"; // <-- CORREGIDO
-import RegisterPage from "@/pages/register/RegisterPage.jsx"; // <-- CORREGIDO (La que fallaba)
+import RegisterPage from "@/pages/register/TempRegisterPage.jsx"; // <-- TEMP
 import EmpleadoPage from "@/pages/empleados/EmpleadoPage.jsx"; // <-- CORREGIDO
 import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
 import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
