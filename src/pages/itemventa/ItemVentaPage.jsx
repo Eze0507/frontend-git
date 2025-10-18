@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ItemVentaList from "./ItemVentaList";
 import ItemVentaForm from "./ItemVentaForm";
 import SuccessNotification from "../../components/SuccessNotification";
-import axios from "axios";
+import { getAllItems, createItem, updateItem, deleteItem } from "../../api/itemsApi";
 
 const ItemVentaPage = () => {
   const [items, setItems] = useState([]);
@@ -17,11 +17,16 @@ const ItemVentaPage = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/items/");
+      const allItems = await getAllItems();
       // Solo ítems de tipo "Item de venta"
-      setItems(response.data.filter((item) => item.tipo === "Item de venta"));
+      setItems(allItems.filter((item) => item.tipo === "Item de venta"));
     } catch (error) {
+      console.error("Error al cargar ítems de venta:", error);
       setItems([]);
+      // Mostrar mensaje de error específico
+      if (error.message.includes('sesión ha expirado')) {
+        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -36,15 +41,10 @@ const ItemVentaPage = () => {
     setLoading(true);
     try {
       if (editingItem) {
-        // Si es FormData, usar PATCH para mejor compatibilidad con DRF
-        if (formData instanceof FormData) {
-          await axios.patch(`http://127.0.0.1:8000/api/items/${editingItem.id}/`, formData);
-        } else {
-          await axios.put(`http://127.0.0.1:8000/api/items/${editingItem.id}/`, formData);
-        }
+        await updateItem(editingItem.id, formData);
         setSuccessMessage("¡Ítem de venta actualizado exitosamente!");
       } else {
-        await axios.post("http://127.0.0.1:8000/api/items/", formData);
+        await createItem(formData);
         setSuccessMessage("¡Ítem de venta guardado exitosamente!");
       }
       setShowForm(false);
@@ -52,7 +52,26 @@ const ItemVentaPage = () => {
       setShowSuccessNotification(true);
       fetchItems();
     } catch (error) {
-      alert("Error al guardar el ítem de venta");
+      console.error("Error al guardar ítem de venta:", error);
+      // Mostrar mensaje de error más específico
+      if (error.message.includes('permisos')) {
+        alert(error.message);
+      } else if (error.message.includes('sesión ha expirado')) {
+        alert(error.message);
+      } else if (error.message.startsWith('{')) {
+        // Error de validación del backend
+        try {
+          const errorData = JSON.parse(error.message);
+          const errorMsg = Object.entries(errorData)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('\n');
+          alert(`Error al guardar el ítem de venta:\n${errorMsg}`);
+        } catch {
+          alert("Error al guardar el ítem de venta");
+        }
+      } else {
+        alert(error.message || "Error al guardar el ítem de venta");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,10 +82,13 @@ const ItemVentaPage = () => {
     if (!window.confirm("¿Seguro que deseas eliminar este ítem?")) return;
     setLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/items/${id}/`);
+      await deleteItem(id);
+      setSuccessMessage("¡Ítem de venta eliminado exitosamente!");
+      setShowSuccessNotification(true);
       fetchItems();
     } catch (error) {
-      alert("Error al eliminar el ítem de venta");
+      console.error("Error al eliminar ítem de venta:", error);
+      alert(error.message || "Error al eliminar el ítem de venta");
     } finally {
       setLoading(false);
     }
