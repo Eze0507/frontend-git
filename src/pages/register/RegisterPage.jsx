@@ -1,6 +1,6 @@
-// src/pages/register/RegisterPage.jsx
+﻿// src/pages/register/RegisterPage.jsx
 import React, { useState } from "react";
-import RegisterForm from "./registerForm";
+import RegisterForm from "./RegisterForm";
 import { useRegister } from "../../hooks/useRegister";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +16,7 @@ const RegisterPage = () => {
     e.preventDefault();
     const success = await register({ username, email, password, password2 });
     if (success) {
-      navigate("/login"); // o directamente al dashboard si querés
+      navigate("/login");
     }
   };
 
