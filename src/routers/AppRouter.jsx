@@ -14,9 +14,9 @@ import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
 import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
-import ItemTallerPage from "@/pages/ItemTaller/ItemTallerPage.jsx"; // <-- CORREGIDO
-import ItemVentaPage from "@/pages/ItemVenta/ItemVentaPage.jsx"; // <-- CORREGIDO
-import ServicioPage from "@/pages/Servicios/ServicioPage.jsx"; // <-- CORREGIDO
+import ItemTallerPage from "@/pages/itemtaller/ItemTallerPage.jsx"; // <-- CORREGIDO
+import ItemVentaPage from "@/pages/itemventa/ItemVentaPage.jsx"; // <-- CORREGIDO
+import ServicioPage from "@/pages/servicios/ServicioPage.jsx"; // <-- CORREGIDO
 import AreaPage from "@/pages/area/areaPage.jsx"; // <-- CORREGIDO
 import VehiculoPage from "@/pages/vehiculos/VehiculoPage.jsx"; // <-- CORREGIDO
 import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
