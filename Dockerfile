@@ -23,21 +23,24 @@ RUN npm run build
 # 7. Usa una imagen base muy ligera de Nginx para servir los archivos estáticos.
 FROM nginx:alpine
 
-# 8. Copia la configuración de Nginx (creada en el Paso 2).
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 8. Instala envsubst para reemplazar variables de entorno
+RUN apk add --no-cache gettext
 
-# 9. Copia los archivos estáticos construidos ('dist') de la etapa anterior.
-# Esta es la línea crucial que mueve la app compilada al servidor Nginx.
+# 9. Copia el template de configuración de Nginx
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# 10. Copia los archivos estáticos construidos ('dist') de la etapa anterior.
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# 10. Expone el puerto 80, que es el que Nginx escucha por defecto.
+# 11. Expone el puerto que Railway asignará
 EXPOSE 80
 
-# 11. Crea un script para iniciar nginx con el puerto correcto
+# 12. Script para iniciar Nginx con el puerto correcto
 RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
-    echo 'sed -i "s/listen 80;/listen ${PORT:-80};/g" /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    echo 'export PORT=${PORT:-80}' >> /docker-entrypoint.sh && \
+    echo 'envsubst "\$PORT" < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh
 
-# 12. Comando para iniciar Nginx.
+# 13. Comando para iniciar Nginx
 CMD ["/docker-entrypoint.sh"]
