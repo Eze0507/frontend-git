@@ -33,5 +33,11 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # 10. Expone el puerto 80, que es el que Nginx escucha por defecto.
 EXPOSE 80
 
-# 11. Comando para iniciar Nginx.
-CMD ["nginx", "-g", "daemon off;"]
+# 11. Crea un script para iniciar nginx con el puerto correcto
+RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+    echo 'sed -i "s/listen 80;/listen ${PORT:-80};/g" /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+# 12. Comando para iniciar Nginx.
+CMD ["/docker-entrypoint.sh"]
