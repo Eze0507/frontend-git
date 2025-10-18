@@ -1,25 +1,25 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import Layout from "../pages/layout";
-import Dashboard from "../pages/dashboard/dashboard.jsx";
-import UserPage from "../pages/usuario/UserPage.jsx";
-import CargoPage from "../pages/cargo/cargoPage.jsx";
-import HomePage from "../pages/home/HomePage.jsx";
-import LoginPage from "../pages/login/loginPage.jsx"; // 👈 importar login
-import RegisterPage from "../pages/register/RegisterPage.jsx";
-import EmpleadoPage from "../pages/empleados/EmpleadoPage.jsx";
-import RolePage from "../pages/roles/rolePage.jsx";
-import ClientePage from "../pages/cliente/ClientePage.jsx";
-import OrdenPage from "../pages/ordenes/OrdenPage.jsx";
-import OrdenDetalle from "../pages/ordenes/OrdenDetalle.jsx";
-import PresupuestoPage from "../pages/presupuestos/PresupuestoPage.jsx";
-import PresupuestoDetalle from "../pages/presupuestos/PresupuestoDetalle.jsx";
-import ItemTallerPage from "../pages/ItemTaller/ItemTallerPage.jsx";
-import ItemVentaPage from "../pages/ItemVenta/ItemVentaPage.jsx";
-import ServicioPage from "../pages/Servicios/ServicioPage.jsx";
-import AreaPage from "../pages/area/areaPage.jsx";
-import VehiculoPage from "../pages/vehiculos/VehiculoPage.jsx";
-import BitacoraPage from "../pages/bitacora/BitacoraPage.jsx";
+import Layout from "@/pages/layout"; // <-- CORREGIDO
+import Dashboard from "@/pages/dashboard/dashboard.jsx"; // <-- CORREGIDO
+import UserPage from "@/pages/usuario/UserPage.jsx"; // <-- CORREGIDO
+import CargoPage from "@/pages/cargo/cargoPage.jsx"; // <-- CORREGIDO
+import HomePage from "@/pages/home/HomePage.jsx"; // <-- CORREGIDO
+import LoginPage from "@/pages/login/loginPage.jsx"; // <-- CORREGIDO
+import RegisterPage from "@/pages/register/RegisterPage.jsx"; // <-- CORREGIDO (La que fallaba)
+import EmpleadoPage from "@/pages/empleados/EmpleadoPage.jsx"; // <-- CORREGIDO
+import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
+import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
+import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
+import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
+import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
+import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
+import ItemTallerPage from "@/pages/ItemTaller/ItemTallerPage.jsx"; // <-- CORREGIDO
+import ItemVentaPage from "@/pages/ItemVenta/ItemVentaPage.jsx"; // <-- CORREGIDO
+import ServicioPage from "@/pages/Servicios/ServicioPage.jsx"; // <-- CORREGIDO
+import AreaPage from "@/pages/area/areaPage.jsx"; // <-- CORREGIDO
+import VehiculoPage from "@/pages/vehiculos/VehiculoPage.jsx"; // <-- CORREGIDO
+import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
