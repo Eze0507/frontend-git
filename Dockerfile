@@ -16,6 +16,10 @@ RUN npm ci
 # 5. Copia el resto del código fuente.
 COPY . .
 
+# 5.1. Declara la variable de entorno como ARG para el build
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # 6. Ejecuta el comando de construcción de Vite. Esto genera la carpeta 'dist'.
 RUN npm run build
 
