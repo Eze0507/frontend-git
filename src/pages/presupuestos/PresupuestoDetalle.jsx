@@ -1,13 +1,34 @@
+// src/pages/presupuestos/PresupuestoDetalle.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchPresupuestoById } from "../../api/presupuestosApi.jsx";
+import { Helmet } from "react-helmet";
+import { 
+  fetchPresupuestoById, 
+  deletePresupuesto 
+} from "../../api/presupuestosApi";
+import { 
+  FaArrowLeft, 
+  FaEdit, 
+  FaTrash, 
+  FaFileInvoiceDollar, 
+  FaCar, 
+  FaUser, 
+  FaCalendar,
+  FaDollarSign,
+  FaCheck,
+  FaTimes,
+  FaPrint,
+  FaDownload
+} from 'react-icons/fa';
 
 const PresupuestoDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [presupuesto, setPresupuesto] = useState(null);
+  const [detalles, setDetalles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("vehiculo");
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState("detalles");
 
   useEffect(() => {
     loadPresupuestoData();
@@ -16,415 +37,489 @@ const PresupuestoDetalle = () => {
   const loadPresupuestoData = async () => {
     try {
       setLoading(true);
+      console.log('Iniciando carga de presupuesto con ID:', id);
       const presupuestoData = await fetchPresupuestoById(id);
+      
+      console.log('✅ Datos del presupuesto recibidos:', presupuestoData);
+      console.log('✅ Detalles del presupuesto:', presupuestoData.detalles);
+      console.log('✅ Vehículo:', presupuestoData.vehiculo);
+      console.log('✅ Cliente:', presupuestoData.cliente_nombre);
+      
       setPresupuesto(presupuestoData);
+      // Los detalles vienen anidados en presupuestoData.detalles
+      setDetalles(presupuestoData.detalles || []);
+      setError('');
+      console.log('✅ Estado actualizado correctamente');
     } catch (error) {
-      console.error("Error cargando datos:", error);
+      console.error("❌ Error cargando datos:", error);
+      console.error("❌ Error completo:", error.message);
+      setError('Error al cargar los datos del presupuesto');
     } finally {
       setLoading(false);
+      console.log('🏁 Carga finalizada, loading=false');
     }
   };
 
-  if (loading) {
+  const handleDelete = async () => {
+    if (window.confirm('¿Está seguro de que desea eliminar este presupuesto?')) {
+      try {
+        await deletePresupuesto(id);
+        navigate('/presupuestos');
+      } catch (error) {
+        setError('Error al eliminar el presupuesto');
+        console.error('Error deleting presupuesto:', error);
+      }
+    }
+  };
+
+  const handleEdit = () => {
+    navigate(`/presupuestos/${id}/editar`);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}presupuestos/${id}/export_pdf/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Error al generar PDF');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `presupuesto_${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Error al descargar el PDF');
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}presupuestos/${id}/export_excel/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Error al generar Excel');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `presupuesto_${id}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading Excel:', error);
+      alert('Error al descargar el Excel');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const formatCurrency = (amount) => {
+    if (!amount) return 'Bs. 0,00';
+    return `Bs. ${parseFloat(amount).toLocaleString('es-BO', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-BO', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
+
+  const getStatusBadge = (estado) => {
+    const statusConfig = {
+      'pendiente': { 
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-300', 
+        icon: <FaCalendar className="mr-1" />,
+        label: 'Pendiente' 
+      },
+      'aprobado': { 
+        color: 'bg-green-100 text-green-800 border-green-300', 
+        icon: <FaCheck className="mr-1" />,
+        label: 'Aprobado' 
+      },
+      'rechazado': { 
+        color: 'bg-red-100 text-red-800 border-red-300', 
+        icon: <FaTimes className="mr-1" />,
+        label: 'Rechazado' 
+      },
+      'cancelado': { 
+        color: 'bg-gray-100 text-gray-800 border-gray-300', 
+        icon: <FaTimes className="mr-1" />,
+        label: 'Cancelado' 
+      },
+    };
+
+    const config = statusConfig[estado?.toLowerCase()] || statusConfig['pendiente'];
+    
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Cargando...</div>
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
+        {config.icon}
+        {config.label}
+      </span>
+    );
+  };
+
+  if (loading) {
+    console.log('⏳ Renderizando estado de carga...');
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <span className="ml-4 text-gray-600">Cargando presupuesto...</span>
+        </div>
       </div>
     );
   }
 
   if (!presupuesto) {
+    console.log('⚠️ No hay presupuesto para mostrar');
     return (
-      <div className="text-center py-8">
-        <div className="text-lg text-gray-600">Presupuesto no encontrado</div>
-        <button
-          onClick={() => navigate("/presupuestos")}
-          className="mt-4 text-blue-600 hover:text-blue-800"
-        >
-          Volver a la lista
-        </button>
+      <div className="p-6">
+        <div className="text-center py-8">
+          <div className="text-lg text-gray-600 mb-4">Presupuesto no encontrado</div>
+          <button
+            onClick={() => navigate("/presupuestos")}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Volver a la lista
+          </button>
+        </div>
       </div>
     );
   }
 
-  const tabs = [
-    { id: "vehiculo", label: "Vehículo" },
-    { id: "condiciones", label: "Condiciones" },
-    { id: "notas", label: "Notas" },
-    { id: "info", label: "Info" }
-  ];
+  console.log('✨ Renderizando presupuesto completo:', presupuesto.id);
 
   return (
-    <div className="bg-white rounded-lg shadow-md h-full flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-800 text-white p-4 rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold">{presupuesto.numero}</h2>
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm">{presupuesto.fecha}</span>
-            </div>
+    <>
+      <Helmet>
+        <title>{`Presupuesto #${presupuesto.id} - Sistema de Taller`}</title>
+      </Helmet>
+      
+      <div className="p-6 max-w-7xl mx-auto">
+        {error && (
+          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm">Asignar técnico</span>
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+        )}
+
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate('/presupuestos')}
+                className="mr-4 p-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <FaArrowLeft />
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Presupuesto #{presupuesto.id}
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  {presupuesto.fecha_inicio && `Fecha inicio: ${formatDate(presupuesto.fecha_inicio)}`}
+                </p>
+              </div>
             </div>
             
-            <div className="flex space-x-2">
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2v-4a2 2 0 00-2-2h-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm4 7H3v3h14v-3z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button className="p-2 hover:bg-gray-700 rounded">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <div className="w-1 h-6 bg-gray-600"></div>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
-                Ver orden
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Contenido principal */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* Información del cliente */}
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                <input
-                  type="text"
-                  defaultValue={presupuesto.cliente}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            <div className="flex items-center space-x-3">
+              {getStatusBadge(presupuesto.estado)}
               
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                </svg>
-                <input
-                  type="text"
-                  defaultValue={presupuesto.direccion}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11.14 5.293a1 1 0 00-1.28 1.28l.5 2a1 1 0 00.65.65l2 .5a1 1 0 001.28-1.28l-.5-2a1 1 0 00-.65-.65l-2-.5z" clipRule="evenodd" />
-                </svg>
-                <input
-                  type="text"
-                  defaultValue={presupuesto.ci}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-                <input
-                  type="text"
-                  defaultValue={presupuesto.telefono}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                  </svg>
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleEdit}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <FaEdit />
+                  Editar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <FaTrash />
+                  Eliminar
+                </button>
+                <button 
+                  onClick={handlePrint}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <FaPrint />
+                  Imprimir
+                </button>
+                <button 
+                  onClick={handleDownloadPDF}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <FaDownload />
+                  PDF
+                </button>
+                <button 
+                  onClick={handleDownloadExcel}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <FaDownload />
+                  Excel
                 </button>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
-                <input
-                  type="email"
-                  defaultValue={presupuesto.email}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Servicio o producto */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">SERVICIO O PRODUCTO</h3>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                <div className="grid grid-cols-4 gap-4 text-sm font-medium text-gray-600">
-                  <div>CANT</div>
-                  <div>PRECIO</div>
-                  <div>DESC</div>
-                  <div>TOTAL</div>
-                </div>
-              </div>
-              <div className="p-4">
-                {presupuesto.servicios.map((servicio) => (
-                  <div key={servicio.id} className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{servicio.nombre}</div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm">{servicio.cantidad}</span>
-                      <span className="text-sm">{servicio.precio}</span>
-                      <span className="text-sm">{servicio.descuento || "-"}</span>
-                      <span className="text-sm font-semibold">{servicio.total}</span>
-                      <div className="flex space-x-2">
-                        <button className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                          S
-                        </button>
-                        <button className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3">
-              <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-800">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
-                <span>Agregar nuevo servicio o producto</span>
-              </button>
             </div>
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-          {/* Tabs */}
+        {/* Información principal en cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Cliente */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <FaUser className="text-blue-600 mr-3 text-xl" />
+              <h2 className="text-xl font-semibold text-gray-800">Cliente</h2>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <span className="text-sm text-gray-600">Nombre:</span>
+                <p className="font-medium">{presupuesto.cliente_nombre || 'Sin cliente'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Vehículo */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <FaCar className="text-green-600 mr-3 text-xl" />
+              <h2 className="text-xl font-semibold text-gray-800">Vehículo</h2>
+            </div>
+            {presupuesto.vehiculo ? (
+              <div className="space-y-2">
+                <div>
+                  <span className="text-sm text-gray-600">Placa:</span>
+                  <p className="font-medium">{presupuesto.vehiculo.placa}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Marca:</span>
+                  <p className="font-medium">{presupuesto.vehiculo.marca}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Modelo:</span>
+                  <p className="font-medium">{presupuesto.vehiculo.modelo}</p>
+                </div>
+                {presupuesto.vehiculo.año && (
+                  <div>
+                    <span className="text-sm text-gray-600">Año:</span>
+                    <p className="font-medium">{presupuesto.vehiculo.año}</p>
+                  </div>
+                )}
+                {presupuesto.vehiculo.color && (
+                  <div>
+                    <span className="text-sm text-gray-600">Color:</span>
+                    <p className="font-medium">{presupuesto.vehiculo.color}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-500">No se ha asignado un vehículo</p>
+            )}
+          </div>
+
+          {/* Resumen financiero */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <FaDollarSign className="text-green-600 mr-3 text-xl" />
+              <h2 className="text-xl font-semibold text-gray-800">Resumen</h2>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="font-medium">{formatCurrency(presupuesto.subtotal)}</span>
+              </div>
+              
+              {presupuesto.total_descuentos > 0 && (
+                <div className="flex justify-between text-red-600">
+                  <span>Descuentos:</span>
+                  <span className="font-medium">-{formatCurrency(presupuesto.total_descuentos)}</span>
+                </div>
+              )}
+              
+              {presupuesto.con_impuestos && presupuesto.monto_impuesto > 0 && (
+                <div className="flex justify-between text-blue-600">
+                  <span>IVA ({presupuesto.impuestos}%):</span>
+                  <span className="font-medium">{formatCurrency(presupuesto.monto_impuesto)}</span>
+                </div>
+              )}
+              
+              <hr />
+              
+              <div className="flex justify-between text-lg font-bold text-gray-800">
+                <span>Total:</span>
+                <span>{formatCurrency(presupuesto.total)}</span>
+              </div>
+              
+              {presupuesto.fecha_fin && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center text-blue-800">
+                    <FaCalendar className="mr-2" />
+                    <span className="text-sm">
+                      Fecha fin: {formatDate(presupuesto.fecha_fin)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs de contenido */}
+        <div className="bg-white rounded-lg shadow-md">
           <div className="border-b border-gray-200">
-            <div className="flex overflow-x-auto">
-              {tabs.map((tab) => (
+            <nav className="flex space-x-8 px-6">
+              {[
+                { id: 'detalles', label: 'Detalles', icon: <FaFileInvoiceDollar /> },
+                { id: 'observaciones', label: 'Diagnóstico', icon: <FaEdit /> }
+              ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
+                  className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
+                  {tab.icon}
                   {tab.label}
                 </button>
               ))}
-            </div>
+            </nav>
           </div>
 
-          {/* Contenido del tab activo */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            {activeTab === "vehiculo" && (
-              <div className="space-y-4">
-                {/* Botones de acción del vehículo */}
-                <div className="flex justify-between items-center">
-                  <button className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded text-sm font-medium">
-                    Editar vehículo
-                  </button>
-                  <button className="text-red-500 hover:text-red-700">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
+          <div className="p-6">
+            {activeTab === 'detalles' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Detalles del Presupuesto</h3>
+                
+                {detalles.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Item
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Cantidad
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Precio Unit.
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Descuento
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Subtotal
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {detalles.map((detalle) => {
+                          const cantidad = parseFloat(detalle.cantidad) || 0;
+                          const precioUnitario = parseFloat(detalle.precio_unitario) || 0;
+                          const descuentoPorcentaje = parseFloat(detalle.descuento_porcentaje) || 0;
+                          const subtotalSinDescuento = cantidad * precioUnitario;
+                          const descuentoMonto = subtotalSinDescuento * (descuentoPorcentaje / 100);
+                          const subtotalConDescuento = subtotalSinDescuento - descuentoMonto;
 
-                {/* Información del vehículo */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Matrícula
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={presupuesto.vehiculo.matricula}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                          return (
+                            <tr key={detalle.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {detalle.item?.nombre || 'Item no especificado'}
+                                  </div>
+                                  {detalle.item?.descripcion && (
+                                    <div className="text-sm text-gray-500">
+                                      {detalle.item.descripcion}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {cantidad.toLocaleString('es-BO')}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {formatCurrency(precioUnitario)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {descuentoPorcentaje}%
+                                </div>
+                                {descuentoMonto > 0 && (
+                                  <div className="text-xs text-red-600">
+                                    -{formatCurrency(descuentoMonto)}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {formatCurrency(subtotalConDescuento)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Marca
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={presupuesto.vehiculo.marca}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay detalles registrados para este presupuesto</p>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Modelo
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={presupuesto.vehiculo.modelo}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Color
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={presupuesto.vehiculo.color}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Año
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={presupuesto.vehiculo.año}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Kilometraje
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={presupuesto.vehiculo.kilometraje}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Motivo
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        defaultValue={presupuesto.vehiculo.motivo}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8"
-                      />
-                      <svg className="absolute right-2 top-2.5 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Diagnóstico
-                    </label>
-                    <textarea
-                      defaultValue={presupuesto.vehiculo.diagnostico}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
             )}
 
-            {activeTab !== "vehiculo" && (
-              <div className="text-center text-gray-500 py-8">
-                Contenido de {tabs.find(t => t.id === activeTab)?.label} próximamente
+            {activeTab === 'observaciones' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Diagnóstico</h3>
+                {presupuesto.diagnostico ? (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 whitespace-pre-wrap">{presupuesto.diagnostico}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay diagnóstico registrado para este presupuesto</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Barra inferior con totales y botón de imprimir */}
-      <div className="bg-gray-50 border-t border-gray-200 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11.14 5.293a1 1 0 00-1.28 1.28l.5 2a1 1 0 00.65.65l2 .5a1 1 0 001.28-1.28l-.5-2a1 1 0 00-.65-.65l-2-.5z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm font-medium text-gray-700">DESCUENTO</span>
-              <input
-                type="text"
-                defaultValue={presupuesto.descuento}
-                className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1">SUBTOTAL</div>
-              <div className="bg-gray-200 px-3 py-2 rounded-md text-sm font-semibold">{presupuesto.subtotal}</div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1">IVA 13%</div>
-              <div className="bg-gray-200 px-3 py-2 rounded-md text-sm flex items-center">
-                <span>{presupuesto.iva}</span>
-                <button className="ml-2 text-red-500 hover:text-red-700">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1">TOTAL</div>
-              <div className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-semibold">{presupuesto.totalFinal}</div>
-            </div>
-            
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2v-4a2 2 0 00-2-2h-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm4 7H3v3h14v-3z" clipRule="evenodd" />
-              </svg>
-              <span>Imprimir presupuesto</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

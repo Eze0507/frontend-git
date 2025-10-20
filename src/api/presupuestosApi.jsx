@@ -1,110 +1,161 @@
-// API para gestión de presupuestos
-const API_BASE_URL = 'http://localhost:8000/api';
+// src/api/presupuestosApi.jsx
+import axios from "axios";
 
-// Datos de ejemplo para el prototipo
-const presupuestosEjemplo = [
-  {
-    id: 1,
-    numero: "#1",
-    fecha: "3 Oct 2025",
-    cliente: "carlos",
-    marcaModelo: "Toyota 4runner",
-    orden: true, // Indica si tiene orden asociada
-    total: "Bs90",
-    periodo: "Octubre 2025",
-    estadoPresupuesto: "Pendiente",
-    realizadoPor: "Juan Pérez",
-    direccion: "calle esmeralda av Bolivia",
-    ci: "1234567",
-    telefono: "+59189456789",
-    email: "carlos@gmail.com",
-    servicios: [
-      {
-        id: 1,
-        nombre: "aceite",
-        cantidad: 1,
-        precio: "Bs80,00",
-        descuento: 0,
-        total: "Bs80"
-      }
-    ],
-    descuento: 0,
-    subtotal: "Bs80",
-    iva: "Bs10",
-    totalFinal: "Bs90",
-    vehiculo: {
-      matricula: "JEJE201",
-      marca: "Toyota",
-      modelo: "4runner",
-      color: "blanco",
-      año: "2019",
-      kilometraje: "",
-      motivo: "",
-      diagnostico: ""
+// Instancia de Axios
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  }
-];
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Funciones de la API (simuladas para el prototipo)
+// ===== PRESUPUESTOS =====
 export const fetchAllPresupuestos = async () => {
-  // Simular delay de API
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return presupuestosEjemplo;
+  try {
+    const response = await apiClient.get('/presupuestos/');
+    return response.data;
+  } catch (error) {
+    console.error('Error en fetchAllPresupuestos:', error);
+    throw new Error('Error al obtener los presupuestos: ' + error.message);
+  }
 };
 
 export const fetchPresupuestoById = async (id) => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return presupuestosEjemplo.find(presupuesto => presupuesto.id === parseInt(id)) || null;
+  try {
+    const response = await apiClient.get(`/presupuestos/${id}/`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Error al obtener el presupuesto.');
+  }
 };
 
 export const createPresupuesto = async (presupuestoData) => {
-  await new Promise(resolve => setTimeout(resolve, 800));
-  const nuevoPresupuesto = {
-    id: presupuestosEjemplo.length + 1,
-    numero: `#${presupuestosEjemplo.length + 1}`,
-    ...presupuestoData,
-    fecha: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
-    estadoPresupuesto: "Pendiente"
-  };
-  presupuestosEjemplo.push(nuevoPresupuesto);
-  return nuevoPresupuesto;
+  try {
+    const response = await apiClient.post('/presupuestos/', presupuestoData);
+    return response.data;
+  } catch (error) {
+    console.error('Error del backend:', error.response?.data);
+    if (error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    }
+    throw new Error('Error de conexión al crear el presupuesto.');
+  }
 };
 
 export const updatePresupuesto = async (id, presupuestoData) => {
-  await new Promise(resolve => setTimeout(resolve, 600));
-  const index = presupuestosEjemplo.findIndex(presupuesto => presupuesto.id === parseInt(id));
-  if (index !== -1) {
-    presupuestosEjemplo[index] = { ...presupuestosEjemplo[index], ...presupuestoData };
-    return presupuestosEjemplo[index];
+  try {
+    const response = await apiClient.put(`/presupuestos/${id}/`, presupuestoData);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    }
+    throw new Error('Error de conexión al actualizar el presupuesto.');
   }
-  throw new Error('Presupuesto no encontrado');
 };
 
 export const deletePresupuesto = async (id) => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  const index = presupuestosEjemplo.findIndex(presupuesto => presupuesto.id === parseInt(id));
-  if (index !== -1) {
-    presupuestosEjemplo.splice(index, 1);
-    return true;
+  try {
+    await apiClient.delete(`/presupuestos/${id}/`);
+  } catch (error) {
+    throw new Error('Error al eliminar el presupuesto.');
   }
-  throw new Error('Presupuesto no encontrado');
 };
 
-// Funciones auxiliares
-export const toApiPresupuesto = (formData) => {
-  return {
-    cliente: formData.cliente,
-    direccion: formData.direccion,
-    ci: formData.ci,
-    telefono: formData.telefono,
-    email: formData.email,
-    servicios: formData.servicios,
-    descuento: formData.descuento,
-    subtotal: formData.subtotal,
-    iva: formData.iva,
-    totalFinal: formData.totalFinal,
-    vehiculo: formData.vehiculo
-  };
+// ===== DETALLES PRESUPUESTO =====
+export const fetchDetallesByPresupuesto = async (presupuestoId) => {
+  try {
+    const response = await apiClient.get(`/detalles-presupuesto/?presupuesto_id=${presupuestoId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Error al obtener los detalles del presupuesto.');
+  }
+};
+
+export const createDetallePresupuesto = async (detalleData) => {
+  try {
+    const response = await apiClient.post('/detalles-presupuesto/', detalleData);
+    return response.data;
+  } catch (error) {
+    console.error('Error del backend:', error.response?.data);
+    if (error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    }
+    throw new Error('Error de conexión al crear el detalle.');
+  }
+};
+
+export const updateDetallePresupuesto = async (id, detalleData) => {
+  try {
+    const response = await apiClient.put(`/detalles-presupuesto/${id}/`, detalleData);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    }
+    throw new Error('Error de conexión al actualizar el detalle.');
+  }
+};
+
+export const deleteDetallePresupuesto = async (id) => {
+  try {
+    await apiClient.delete(`/detalles-presupuesto/${id}/`);
+  } catch (error) {
+    throw new Error('Error al eliminar el detalle del presupuesto.');
+  }
+};
+
+// ===== BULK OPERATIONS =====
+export const bulkCreateDetalles = async (detallesData) => {
+  try {
+    const response = await apiClient.post('/detalles-presupuesto/bulk_create/', detallesData);
+    return response.data;
+  } catch (error) {
+    console.error('Error del backend:', error.response?.data);
+    if (error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    }
+    throw new Error('Error de conexión al crear los detalles en lote.');
+  }
+};
+
+// ===== HELPERS =====
+export const fetchItemsForPresupuesto = async () => {
+  try {
+    const response = await apiClient.get('/items/');
+    return response.data;
+  } catch (error) {
+    throw new Error('Error al obtener los items.');
+  }
+};
+
+export const fetchVehiculosForPresupuesto = async () => {
+  try {
+    // El backend registra 'vehiculos' en la ruta /api/vehiculos/
+    const response = await apiClient.get('/vehiculos/');
+    console.log('Vehículos response:', response.status);
+    return response.data.results || response.data;
+  } catch (error) {
+    console.error('Error al obtener vehículos:', error);
+    throw new Error('Error al obtener los vehículos.');
+  }
+};
+
+export const fetchClientesForPresupuesto = async () => {
+  try {
+    const response = await apiClient.get('/clientes/?activo=true');
+    return response.data;
+  } catch (error) {
+    throw new Error('Error al obtener los clientes.');
+  }
 };
 
 export const checkUserPermissions = () => {
