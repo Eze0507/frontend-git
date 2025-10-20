@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ServicioList from "./ServicioList";
 import ServicioForm from "./ServicioForm";
 import SuccessNotification from "../../components/SuccessNotification";
-import axios from "axios";
+import { getAllItems, createItem, updateItem, deleteItem } from "../../api/itemsApi";
 import { getAreas } from "../../api/areaApi";
 
 const ServicioPage = () => {
@@ -31,9 +31,9 @@ const ServicioPage = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/items/");
+      const allItems = await getAllItems();
       // Solo ítems de tipo "Servicio"
-      const servicios = response.data.filter((item) => item.tipo === "Servicio");
+      const servicios = allItems.filter((item) => item.tipo === "Servicio");
       
       // Mapear servicios para incluir el nombre del área
       const areasData = areas.length > 0 ? areas : await fetchAreas();
@@ -50,6 +50,10 @@ const ServicioPage = () => {
     } catch (error) {
       console.error("Error al cargar servicios:", error);
       setItems([]);
+      // Mostrar mensaje de error específico
+      if (error.message.includes('sesión ha expirado')) {
+        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -72,22 +76,16 @@ const ServicioPage = () => {
     }
     
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
-      
       let response;
       if (editingItem) {
-        response = await axios.put(`http://127.0.0.1:8000/api/items/${editingItem.id}/`, formData, config);
+        response = await updateItem(editingItem.id, formData);
         setSuccessMessage("¡Servicio actualizado exitosamente!");
       } else {
-        response = await axios.post("http://127.0.0.1:8000/api/items/", formData, config);
+        response = await createItem(formData);
         setSuccessMessage("¡Servicio guardado exitosamente!");
       }
       
-      console.log("Respuesta del backend:", response.data);
+      console.log("Respuesta del backend:", response);
       
       setShowForm(false);
       setEditingItem(null);
@@ -96,16 +94,25 @@ const ServicioPage = () => {
       fetchItems();
     } catch (error) {
       console.error("Error completo:", error);
-      console.error("Respuesta del error:", error.response?.data);
-      console.error("Status del error:", error.response?.status);
       
-      if (error.response?.data) {
-        const errorMsg = Object.entries(error.response.data)
-          .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-          .join('\n');
-        alert(`Error al guardar el servicio:\n${errorMsg}`);
+      // Mostrar mensaje de error más específico
+      if (error.message.includes('permisos')) {
+        alert(error.message);
+      } else if (error.message.includes('sesión ha expirado')) {
+        alert(error.message);
+      } else if (error.message.startsWith('{')) {
+        // Error de validación del backend
+        try {
+          const errorData = JSON.parse(error.message);
+          const errorMsg = Object.entries(errorData)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('\n');
+          alert(`Error al guardar el servicio:\n${errorMsg}`);
+        } catch {
+          alert("Error al guardar el servicio");
+        }
       } else {
-        alert("Error al guardar el servicio");
+        alert(error.message || "Error al guardar el servicio");
       }
     } finally {
       setLoading(false);
@@ -117,12 +124,13 @@ const ServicioPage = () => {
     if (!window.confirm("¿Seguro que deseas eliminar este servicio?")) return;
     setLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/items/${id}/`);
+      await deleteItem(id);
       setSuccessMessage("¡Servicio eliminado exitosamente!");
       setShowSuccessNotification(true);
       fetchItems();
     } catch (error) {
-      alert("Error al eliminar el servicio");
+      console.error("Error al eliminar servicio:", error);
+      alert(error.message || "Error al eliminar el servicio");
     } finally {
       setLoading(false);
     }

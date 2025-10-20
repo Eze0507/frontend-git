@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Configurar axios con token por defecto
 const api = axios.create({
@@ -28,7 +28,7 @@ export const bitacoraApi = {
   // Obtener todos los registros de bitácora con filtros
   getBitacora: async (params = {}) => {
     try {
-      const response = await api.get('/bitacora/', { params });
+      const response = await api.get('bitacora/', { params });
       return response.data;
     } catch (error) {
       console.error('Error al obtener bitácora:', error);
@@ -39,7 +39,7 @@ export const bitacoraApi = {
   // Obtener un registro específico
   getBitacoraById: async (id) => {
     try {
-      const response = await api.get(`/bitacora/${id}/`);
+      const response = await api.get(`bitacora/${id}/`);
       return response.data;
     } catch (error) {
       console.error('Error al obtener registro de bitácora:', error);
@@ -51,7 +51,7 @@ export const bitacoraApi = {
   getFilterOptions: async () => {
     try {
       // Obtener algunos registros para extraer opciones únicas
-      const response = await api.get('/bitacora/');
+      const response = await api.get('bitacora/');
       const data = response.data.results || [];
       
       const modulos = [...new Set(data.map(item => item.modulo))];

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ItemTallerList from "./ItemTallerList";
 import ItemTallerForm from "./ItemTallerForm";
 import SuccessNotification from "../../components/SuccessNotification";
-import axios from "axios";
+import { getAllItems, createItem, updateItem, deleteItem } from "../../api/itemsApi";
 
 const ItemTallerPage = () => {
   const [items, setItems] = useState([]);
@@ -17,12 +17,18 @@ const ItemTallerPage = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/items/");
+      const allItems = await getAllItems();
       // Solo ítems de tipo "Item de taller"
-      setItems(response.data.filter((item) => item.tipo === "Item de taller"));
+      setItems(allItems.filter((item) => item.tipo === "Item de taller"));
     } catch (error) {
-      // Manejo de error simple
+      console.error("Error al cargar ítems de taller:", error);
       setItems([]);
+      // Mostrar mensaje de error específico
+      if (error.message.includes('sesión ha expirado')) {
+        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        // Opcional: redirigir al login
+        // window.location.href = '/login';
+      }
     } finally {
       setLoading(false);
     }
@@ -37,15 +43,10 @@ const ItemTallerPage = () => {
     setLoading(true);
     try {
       if (editingItem) {
-        // Si es FormData, usar PATCH para mejor compatibilidad con DRF
-        if (formData instanceof FormData) {
-          await axios.patch(`http://127.0.0.1:8000/api/items/${editingItem.id}/`, formData);
-        } else {
-          await axios.put(`http://127.0.0.1:8000/api/items/${editingItem.id}/`, formData);
-        }
+        await updateItem(editingItem.id, formData);
         setSuccessMessage("¡Ítem de taller actualizado exitosamente!");
       } else {
-        await axios.post("http://127.0.0.1:8000/api/items/", formData);
+        await createItem(formData);
         setSuccessMessage("¡Ítem de taller guardado exitosamente!");
       }
       setShowForm(false);
@@ -54,8 +55,28 @@ const ItemTallerPage = () => {
       setShowSuccessNotification(true);
       fetchItems();
     } catch (error) {
-      // Manejo de error simple
-      alert("Error al guardar el ítem de taller");
+      console.error("Error al guardar ítem de taller:", error);
+      // Mostrar mensaje de error más específico
+      if (error.message.includes('permisos')) {
+        alert(error.message);
+      } else if (error.message.includes('sesión ha expirado')) {
+        alert(error.message);
+        // Opcional: redirigir al login
+        // window.location.href = '/login';
+      } else if (error.message.startsWith('{')) {
+        // Error de validación del backend
+        try {
+          const errorData = JSON.parse(error.message);
+          const errorMsg = Object.entries(errorData)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('\n');
+          alert(`Error al guardar el ítem de taller:\n${errorMsg}`);
+        } catch {
+          alert("Error al guardar el ítem de taller");
+        }
+      } else {
+        alert(error.message || "Error al guardar el ítem de taller");
+      }
     } finally {
       setLoading(false);
     }
@@ -66,10 +87,13 @@ const ItemTallerPage = () => {
     if (!window.confirm("¿Seguro que deseas eliminar este ítem?")) return;
     setLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/items/${id}/`);
+      await deleteItem(id);
+      setSuccessMessage("¡Ítem de taller eliminado exitosamente!");
+      setShowSuccessNotification(true);
       fetchItems();
     } catch (error) {
-      alert("Error al eliminar el ítem de taller");
+      console.error("Error al eliminar ítem de taller:", error);
+      alert(error.message || "Error al eliminar el ítem de taller");
     } finally {
       setLoading(false);
     }
