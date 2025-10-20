@@ -14,6 +14,7 @@ import OrdenPage from "../pages/ordenes/OrdenPage.jsx";
 import OrdenDetalle from "../pages/ordenes/OrdenDetalle.jsx";
 import PresupuestoPage from "../pages/presupuestos/PresupuestoPage.jsx";
 import PresupuestoDetalle from "../pages/presupuestos/PresupuestoDetalle.jsx";
+import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
 import ItemTallerPage from "../pages/ItemTaller/ItemTallerPage.jsx";
 import ItemVentaPage from "../pages/ItemVenta/ItemVentaPage.jsx";
 import ServicioPage from "../pages/Servicios/ServicioPage.jsx";
@@ -67,7 +68,9 @@ const AppRouter = () => {
           <Route path="/ordenes" element={<OrdenPage />} />
           <Route path="/ordenes/:id" element={<OrdenDetalle />} />
           <Route path="/presupuestos" element={<PresupuestoPage />} />
+          <Route path="/presupuestos/nuevo" element={<PresupuestoForm />} />
           <Route path="/presupuestos/:id" element={<PresupuestoDetalle />} />
+          <Route path="/presupuestos/:id/editar" element={<PresupuestoForm />} />
           {/* Ruta para ítems de taller */}
           <Route path="/admin/operaciones/inventario/taller" element={<ItemTallerPage />} />
           {/* Ruta para ítems de venta */}
