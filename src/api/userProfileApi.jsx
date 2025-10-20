@@ -1,8 +1,12 @@
+
 import axios from "axios";
+
+// Definir la base URL con valor por defecto
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Creamos una instancia de Axios que se usará para todas las llamadas a la API.
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
 });
 
 // Interceptor para añadir el token de autenticación a cada solicitud.
