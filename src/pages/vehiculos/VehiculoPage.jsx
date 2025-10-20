@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import VehiculoList from "./VehiculoList.jsx";
 import VehiculoForm from "./VehiculoForm.jsx";
 import VehiculoDetails from "./VehiculoDetails.jsx";
+import SuccessNotification from "../../components/SuccessNotification";
 import {
   fetchAllVehiculos, fetchVehiculoById, fetchAllClientes, fetchAllMarcas, fetchAllModelos,
   createVehiculo, updateVehiculo, deleteVehiculo, toApiVehiculo
@@ -17,6 +18,8 @@ const VehiculoPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedVehiculo, setSelectedVehiculo] = useState(null);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   async function loadVehiculos() {
     setLoading(true);
@@ -125,7 +128,8 @@ const VehiculoPage = () => {
       console.log('🚀 Iniciando eliminación...');
       await deleteVehiculo(id);
       console.log('✅ Eliminación exitosa, recargando lista...');
-      alert('Vehículo eliminado correctamente');
+      setSuccessMessage('Vehículo eliminado correctamente');
+      setShowSuccessNotification(true);
       loadVehiculos();
     } catch (e) { 
       console.error('❌ Error en eliminación:', e.message);
@@ -142,11 +146,12 @@ const VehiculoPage = () => {
       
       if (editing) {
         await updateVehiculo(editing.id, payload);
-        alert("Vehículo actualizado correctamente");
+        setSuccessMessage("Vehículo actualizado correctamente");
       } else {
         await createVehiculo(payload);
-        alert("Vehículo creado correctamente");
+        setSuccessMessage("Vehículo creado correctamente");
       }
+      setShowSuccessNotification(true);
       setShowForm(false);
       setEditing(null);
       loadVehiculos();
@@ -158,8 +163,16 @@ const VehiculoPage = () => {
 
   return (
     <div className="p-6 space-y-6 relative">
+      <SuccessNotification
+        message={successMessage}
+        isVisible={showSuccessNotification}
+        onClose={() => setShowSuccessNotification(false)}
+        duration={3000}
+      />
       <VehiculoList
         vehiculos={vehiculos}
+        marcas={marcas}
+        modelos={modelos}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onAddNew={()=>{ setEditing(null); setShowForm(true); }}

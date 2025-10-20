@@ -168,7 +168,7 @@ const VehiculoForm = ({ onSubmit, onCancel, initialData, clientes = [], marcas =
   const isEditing = !!initialData;
 
   return (
-    <StyledForm title={isEditing ? "Editar Vehículo" : "Registrar Vehículo"} onSubmit={handleSubmit}>
+    <StyledForm title={isEditing ? "Editar Vehículo" : "Registrar Vehículo"} onSubmit={handleSubmit} className="max-w-4xl w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Número de Placa */}
         <div>
@@ -291,7 +291,7 @@ const VehiculoForm = ({ onSubmit, onCancel, initialData, clientes = [], marcas =
           name="tipo_combustible" 
           value={form.tipo_combustible} 
           onChange={handleChange}
-          className="w-full px-3 py-2 rounded-md bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-3 py-2 rounded-md bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
         >
           <option value="">Seleccionar combustible</option>
           <option value="Gasolina">Gasolina</option>
@@ -413,11 +413,11 @@ const VehiculoForm = ({ onSubmit, onCancel, initialData, clientes = [], marcas =
       {/* Botones */}
       <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200 mt-6">
         {onCancel && (
-          <Button variant="cancelar" onClick={onCancel}>
+          <Button variant="cancelar" onClick={onCancel} className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md border">
             Cancelar
           </Button>
         )}
-        <Button variant="guardar" type="submit" disabled={loading}>
+        <Button variant="guardar" type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md">
           {isEditing ? "Guardar Cambios" : "Guardar"}
         </Button>
       </div>

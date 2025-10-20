@@ -1,16 +1,31 @@
 import axios from "axios";
 
 // Creamos una instancia de Axios que se usará para todas las llamadas a la API.
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!BASE_URL) {
+  // Mensaje claro durante build/despliegue si falta la variable de entorno
+  console.warn('VITE_API_URL no está definida. Asegúrate de configurar la variable de entorno para el API.');
+}
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: BASE_URL,
 });
 
 // Interceptor para añadir el token de autenticación a cada solicitud.
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Acceso seguro a localStorage: solo en entorno cliente
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const token = window.localStorage.getItem('access');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+    } catch (err) {
+      // En entornos no-browser no hacemos nada
+      console.debug('localStorage inaccesible en este entorno:', err?.message || err);
     }
     return config;
   },
