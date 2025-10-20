@@ -21,6 +21,7 @@ import ServicioPage from "@/pages/servicios/ServicioPage.jsx"; // <-- CORREGIDO
 import AreaPage from "@/pages/area/areaPage.jsx"; // <-- CORREGIDO
 import VehiculoPage from "@/pages/vehiculos/VehiculoPage.jsx"; // <-- CORREGIDO
 import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
+import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; // <-- RECONOCIMIENTO DE PLACAS
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -81,6 +82,8 @@ const AppRouter = () => {
           <Route path="/admin/operaciones/area" element={<AreaPage />} />
           {/* Ruta para bitácora */}
           <Route path="/admin/bitacora" element={<BitacoraPage />} />
+          {/* Ruta para reconocimiento de placas */}
+          <Route path="/admin/reconocimiento" element={<ReconocimientoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

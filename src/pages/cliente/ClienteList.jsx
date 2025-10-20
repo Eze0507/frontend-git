@@ -10,8 +10,8 @@ const ClienteList = ({ clientes, onEdit, onDelete, onAddNew }) => {
     if (!searchTerm) return clientes;
     const s = searchTerm.toLowerCase();
     return clientes.filter((c) => {
-      const usuarioNombre =
-        c.usuario_nombre || (typeof c.usuario === "object" ? c.usuario?.username : "");
+      // Obtener el username desde usuario_info (del backend)
+      const usuarioNombre = c.usuario_info?.username || "";
       return (
         (c.nombre && c.nombre.toLowerCase().includes(s)) ||
         (c.apellido && c.apellido.toLowerCase().includes(s)) ||
@@ -26,6 +26,7 @@ const ClienteList = ({ clientes, onEdit, onDelete, onAddNew }) => {
   const columns = ["nombre", "apellido", "nit", "telefono", "tipo_cliente_display", "usuario", "estado"];
   const tableData = filtered.map((c) => {
     console.log('📊 Procesando cliente:', c);
+    console.log('🔍 usuario_info:', c.usuario_info);
     return {
       id: c?.id || c?.pk || '', // Usar pk como alternativa si id no existe
       nombre: c?.nombre || "",
@@ -37,10 +38,11 @@ const ClienteList = ({ clientes, onEdit, onDelete, onAddNew }) => {
       activo: c?.activo ?? true, // Valor booleano original
       // Para mostrar en la tabla (solo visual)
       tipo_cliente_display: c?.tipo_cliente === "EMPRESA" ? "Empresa" : "Natural",
-      usuario: c?.usuario_nombre || (typeof c?.usuario === "object" ? c?.usuario?.username : "") || "Sin usuario",
+      usuario: c?.usuario_info?.username || "Sin Usuario",
       estado: c?.activo === false ? "Inactivo" : "Activo", // Texto para mostrar
-      // Para edición - mantener los objetos completos
-      usuario_info: c?.usuario || null,
+      // Para edición - mantener el ID del usuario
+      usuario_id: c?.usuario_info?.id || c?.usuario || null,
+      usuario_info: c?.usuario_info || null,
     };
   });
 

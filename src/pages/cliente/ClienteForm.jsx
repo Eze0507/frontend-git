@@ -27,8 +27,9 @@ const ClienteForm = ({ onSubmit, onCancel, initialData, usuarios = [], loading }
       telefono: initialData?.telefono || "",
       tipo_cliente: initialData?.tipo_cliente || "NATURAL",
       activo: initialData?.activo !== undefined ? Boolean(initialData.activo) : true,
-      // Manejo mejorado para usuario - priorizar usuario_info si existe
-      usuario: initialData?.usuario_info?.id || 
+      // Priorizar usuario_id (del mapeo en ClienteList) sobre otras formas
+      usuario: initialData?.usuario_id || 
+              initialData?.usuario_info?.id || 
               (typeof initialData?.usuario === "object" && initialData?.usuario?.id) ||
               initialData?.usuario ||
               "",
@@ -39,7 +40,7 @@ const ClienteForm = ({ onSubmit, onCancel, initialData, usuarios = [], loading }
       nombre: initialData?.nombre,
       activo: initialData?.activo,
       activo_boolean: Boolean(initialData?.activo),
-      usuario: initialData?.usuario_info?.id || initialData?.usuario,
+      usuario: initialData?.usuario_id || initialData?.usuario_info?.id || initialData?.usuario,
     });
   }, [initialData]);
 
