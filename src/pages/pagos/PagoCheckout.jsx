@@ -35,20 +35,37 @@ const PagoCheckout = () => {
       
       try {
         const orden = await fetchOrdenById(ordenId);
-        console.log('✅ Orden cargada:', orden);
+        console.log('✅ Orden cargada completa:', orden);
+        console.log('📊 Datos de monto - monto_total:', orden.monto_total, 'total:', orden.total);
         
-        // Extraer monto numérico (puede venir como string "Bs226.00" o número)
+        // Extraer monto numérico de forma segura
         let montoTotal = 0;
-        if (orden.monto_total !== undefined && orden.monto_total !== null) {
-          // Si ya existe monto_total numérico, usarlo
-          montoTotal = parseFloat(orden.monto_total);
-        } else if (orden.total) {
-          // Si total viene como string "Bs226.00", extraer el número
-          const match = String(orden.total).match(/[\d.]+/);
+        
+        // Prioridad 1: Usar monto_total si existe y es número válido
+        if (typeof orden.monto_total === 'number' && !isNaN(orden.monto_total)) {
+          montoTotal = orden.monto_total;
+        }
+        // Prioridad 2: Parsear desde total si existe
+        else if (orden.total !== undefined && orden.total !== null && orden.total !== '') {
+          const totalStr = String(orden.total);
+          const match = totalStr.match(/[\d.]+/);
           montoTotal = match ? parseFloat(match[0]) : 0;
         }
+        // Prioridad 3: Intentar calcular desde subtotal + impuesto - descuento
+        else if (orden.subtotal !== undefined) {
+          const subtotal = parseFloat(orden.subtotal) || 0;
+          const impuesto = parseFloat(orden.impuesto) || 0;
+          const descuento = parseFloat(orden.descuento) || 0;
+          montoTotal = subtotal + impuesto - descuento;
+        }
         
-        console.log('💰 Monto extraído:', montoTotal);
+        console.log('💰 Monto final extraído:', montoTotal, 'tipo:', typeof montoTotal);
+        
+        // Validar que el monto sea válido
+        if (isNaN(montoTotal) || montoTotal <= 0) {
+          console.error('❌ Monto inválido:', montoTotal);
+          throw new Error('El monto de la orden no es válido');
+        }
         
         setOrdenInfo({
           id: orden.id,
