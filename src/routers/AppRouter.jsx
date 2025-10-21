@@ -24,6 +24,7 @@ import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
 import PagosList from "@/pages/pagos/PagosList.jsx"; // <-- Módulo de Pagos
 import PagoDetalle from "@/pages/pagos/PagoDetalle.jsx"; // <-- Módulo de Pagos
 import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pagos
+import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; // <-- RECONOCIMIENTO DE PLACAS
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -88,6 +89,8 @@ const AppRouter = () => {
           <Route path="/pagos" element={<PagosList />} />
           <Route path="/pagos/:pagoId" element={<PagoDetalle />} />
           <Route path="/pagos/checkout/:ordenId" element={<PagoCheckout />} />
+          {/* Ruta para reconocimiento de placas */}
+          <Route path="/admin/reconocimiento" element={<ReconocimientoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

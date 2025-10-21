@@ -113,6 +113,7 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
         { name: "Presupuesto", path: "/presupuestos" },
         { name: "Orden de Trabajo", path: "/ordenes" },
         { name: "Vehículo", path: "/admin/operaciones/vehiculos" },
+        { name: "Reconocimiento de Placas", path: "/admin/reconocimiento" },
         {
           name: "inventario",
           key: "inventario",
