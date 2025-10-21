@@ -131,10 +131,9 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       icon: <FaMoneyBillWave className="mr-2" />,
       key: "finanzas",
       subItems: [
-        { name: "Pagos", path: "/admin/finanzas/pagos" },
+        { name: "Historial de Pagos", path: "/pagos" },
         { name: "Factura Proveedor", path: "/admin/finanzas/facturas-proveedor" },
         { name: "Reportes", path: "/admin/finanzas/reportes" },
-        { name: "Métodos de Pago", path: "/admin/finanzas/metodos-pago" },
       ],
     },
   ];

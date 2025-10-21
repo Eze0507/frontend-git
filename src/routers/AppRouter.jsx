@@ -21,6 +21,9 @@ import ServicioPage from "@/pages/servicios/ServicioPage.jsx"; // <-- CORREGIDO
 import AreaPage from "@/pages/area/areaPage.jsx"; // <-- CORREGIDO
 import VehiculoPage from "@/pages/vehiculos/VehiculoPage.jsx"; // <-- CORREGIDO
 import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
+import PagosList from "@/pages/pagos/PagosList.jsx"; // <-- Módulo de Pagos
+import PagoDetalle from "@/pages/pagos/PagoDetalle.jsx"; // <-- Módulo de Pagos
+import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pagos
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -81,6 +84,10 @@ const AppRouter = () => {
           <Route path="/admin/operaciones/area" element={<AreaPage />} />
           {/* Ruta para bitácora */}
           <Route path="/admin/bitacora" element={<BitacoraPage />} />
+          {/* Rutas para el módulo de Pagos */}
+          <Route path="/pagos" element={<PagosList />} />
+          <Route path="/pagos/:pagoId" element={<PagoDetalle />} />
+          <Route path="/pagos/checkout/:ordenId" element={<PagoCheckout />} />
         </Route>
       </Routes>
     </BrowserRouter>
