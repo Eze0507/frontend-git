@@ -2,7 +2,7 @@
 
 # --- Etapa 1: Construcción (Build Stage) ---
 # 1. Usa una imagen base con Node.js para compilar tu código.
-FROM node:20-alpine AS build
+FROM node:20-slim AS build
 
 # 2. Establece el directorio de trabajo dentro del contenedor.
 WORKDIR /app
