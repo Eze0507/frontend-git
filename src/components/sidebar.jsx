@@ -139,6 +139,18 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
     },
   ];
 
+  // Filtrado por rol (sin cambiar estructura ni flujo)
+  const allowedByRole = {
+    admin: ["dashboard", "administracion", "clientes", "operaciones", "finanzas"],
+    empleado: ["dashboard", "clientes", "operaciones"],
+    cliente: [],
+  };
+
+  const normalizedRole = (userRole || '').toLowerCase();
+  const mappedRole = normalizedRole === 'administrador' ? 'admin' : normalizedRole;
+  const allowedKeys = allowedByRole[mappedRole] || [];
+  const filteredMenuItems = menuItems.filter(mi => allowedKeys.includes(mi.key));
+
   return (
     <>
       {/* Botón toggle cuando el sidebar está oculto */}
@@ -181,7 +193,7 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       {/* Menú Desplazable */}
       <nav className="flex-1 overflow-y-auto p-4 sidebar-scrollbar">
         <ul className="space-y-2">
-          {menuItems.map((menu) => (
+          {filteredMenuItems.map((menu) => (
             <li key={menu.key}>
               {menu.subItems ? (
                 <>

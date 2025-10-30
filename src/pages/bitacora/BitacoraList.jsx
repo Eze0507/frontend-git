@@ -120,7 +120,7 @@ const BitacoraList = () => {
     }
   };
 
-  // Columnas de la tabla
+  // Columnas de la tabla (orden original; descripción con mejor legibilidad)
   const columns = [
     {
       key: 'fecha_accion',
@@ -165,8 +165,8 @@ const BitacoraList = () => {
       key: 'descripcion',
       label: 'Descripción',
       render: (value) => (
-        <div className="max-w-md">
-          <p className="text-sm text-gray-900 break-words">{value}</p>
+        <div className="max-w-3xl">
+          <p className="text-sm text-gray-900 break-words whitespace-pre-wrap leading-relaxed">{value}</p>
         </div>
       )
     }
