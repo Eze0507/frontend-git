@@ -143,9 +143,9 @@ const StripePaymentForm = ({ clientSecret, onSuccess, onError, monto, ordenNumer
 
         {/* Información de seguridad */}
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <FaLock className="inline mr-2" />
-            Tu pago está protegido con encriptación de nivel bancario. No almacenamos tu información de tarjeta.
+          <p className="text-sm text-blue-800 flex items-center gap-2">
+            <FaLock />
+            <span>Pago 100% seguro procesado por Stripe</span>
           </p>
         </div>
 
