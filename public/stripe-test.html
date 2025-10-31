@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Stripe - Diagnóstico</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #635BFF;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #ccc;
+            background: #f9f9f9;
+        }
+        .test-item.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .test-item.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        button {
+            background: #635BFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #4B45CC;
+        }
+        .code {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .emoji {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico de Stripe</h1>
+        <p>Esta página te ayuda a verificar si Stripe está configurado correctamente.</p>
+        
+        <button onclick="runTests()">▶️ Ejecutar Tests</button>
+        <button onclick="location.reload()">🔄 Recargar</button>
+        
+        <div id="results"></div>
+
+        <div style="margin-top: 30px;">
+            <h2>📋 Comandos útiles para la consola</h2>
+            <div class="code">
+// Ver clave de Stripe
+console.log('Stripe Key:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+// Ver todas las variables
+console.log('Env:', import.meta.env);
+
+// Test de Stripe
+console.log('Stripe disponible:', typeof Stripe !== 'undefined');
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Resultados:</h2>';
+            
+            // Test 1: Variable de entorno
+            const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+            addResult(
+                '1. Variable VITE_STRIPE_PUBLISHABLE_KEY',
+                stripeKey ? 'success' : 'error',
+                stripeKey 
+                    ? `✅ Configurada: ${stripeKey.substring(0, 20)}...`
+                    : '❌ NO CONFIGURADA - Agrega la variable en Railway'
+            );
+
+            // Test 2: Tipo de clave
+            if (stripeKey) {
+                const isTest = stripeKey.startsWith('pk_test_');
+                const isLive = stripeKey.startsWith('pk_live_');
+                addResult(
+                    '2. Tipo de clave',
+                    isTest || isLive ? 'success' : 'error',
+                    isTest ? '🧪 Modo TEST' : isLive ? '🚀 Modo LIVE' : '❌ Formato inválido'
+                );
+            }
+
+            // Test 3: Protocolo HTTPS
+            const isHttps = window.location.protocol === 'https:';
+            addResult(
+                '3. Protocolo HTTPS',
+                isHttps || window.location.hostname === 'localhost' ? 'success' : 'error',
+                isHttps 
+                    ? '✅ HTTPS activo'
+                    : window.location.hostname === 'localhost'
+                    ? '⚠️ Localhost (OK para desarrollo)'
+                    : '❌ Usa HTTPS en producción'
+            );
+
+            // Test 4: Stripe.js cargado
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const stripeLoaded = typeof Stripe !== 'undefined';
+            addResult(
+                '4. Stripe.js cargado',
+                stripeLoaded ? 'success' : 'error',
+                stripeLoaded ? '✅ Stripe.js disponible' : '❌ No se pudo cargar Stripe.js'
+            );
+
+            // Test 5: CSP Headers
+            addResult(
+                '5. Content Security Policy',
+                'warning',
+                '⚠️ Verifica en la pestaña Network si hay bloqueos CSP'
+            );
+
+            // Resumen
+            results.innerHTML += `
+                <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 5px;">
+                    <h3>🎯 Próximos pasos:</h3>
+                    <ol>
+                        <li>Si ves ❌ en "Variable VITE_STRIPE_PUBLISHABLE_KEY":
+                            <ul>
+                                <li>Ve a Railway → Tu proyecto frontend</li>
+                                <li>Variables → New Variable</li>
+                                <li>Name: <code>VITE_STRIPE_PUBLISHABLE_KEY</code></li>
+                                <li>Value: Tu clave pk_test_... o pk_live_...</li>
+                                <li>Save y espera el redeploy</li>
+                            </ul>
+                        </li>
+                        <li>Limpia caché del navegador (Ctrl+Shift+R)</li>
+                        <li>Vuelve a ejecutar este test</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        function addResult(title, type, message) {
+            const results = document.getElementById('results');
+            results.innerHTML += `
+                <div class="test-item ${type}">
+                    <strong>${title}</strong><br>
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Auto-ejecutar al cargar
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 500);
+        });
+    </script>
+</body>
+</html>

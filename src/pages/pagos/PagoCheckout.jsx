@@ -10,7 +10,18 @@ import { createPaymentIntent, confirmPayment } from '../../api/pagosApi';
 import { fetchOrdenById } from '../../api/ordenesApi';
 
 // Inicializar Stripe con la clave pública
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+// Log para depuración (solo en desarrollo)
+console.log('🔑 Stripe Key disponible:', STRIPE_KEY ? 'Sí ✅' : 'No ❌');
+console.log('🔑 Primeros caracteres:', STRIPE_KEY?.substring(0, 10) + '...');
+
+if (!STRIPE_KEY) {
+  console.error('❌ ERROR CRÍTICO: VITE_STRIPE_PUBLISHABLE_KEY no está definida');
+  console.error('⚠️  Verifica que la variable esté en Railway con el prefijo VITE_');
+}
+
+const stripePromise = loadStripe(STRIPE_KEY);
 
 const PagoCheckout = () => {
   const { ordenId } = useParams();
@@ -345,23 +356,30 @@ const PagoCheckout = () => {
         )}
 
         {/* Formulario de pago según el tipo seleccionado */}
-        {tipoPago === 'stripe' && clientSecret && ordenInfo && (
-          <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <StripePaymentForm
-              clientSecret={clientSecret}
-              onSuccess={handleStripeSuccess}
-              onError={handleStripeError}
-              monto={ordenInfo.monto_total}
-              ordenNumero={ordenInfo.numero_orden}
-            />
-          </Elements>
-        )}
+        {tipoPago === 'stripe' && ordenInfo && (
+          <>
+            {/* Mostrar advertencia si Stripe no está inicializado */}
+            {!STRIPE_KEY && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Configuración incompleta</h4>
+                <p className="text-yellow-700 text-sm">
+                  La clave pública de Stripe no está configurada. Contacta con el administrador.
+                </p>
+              </div>
+            )}
 
-        {tipoPago === 'stripe' && !clientSecret && loading && (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Inicializando sistema de pago...</p>
-          </div>
+            {/* Inicializar Stripe Element siempre (no esperar clientSecret) */}
+            <Elements stripe={stripePromise}>
+              <StripePaymentForm
+                clientSecret={clientSecret}
+                onSuccess={handleStripeSuccess}
+                onError={handleStripeError}
+                monto={ordenInfo.monto_total}
+                ordenNumero={ordenInfo.numero_orden}
+                loading={loading}
+              />
+            </Elements>
+          </>
         )}
 
         {tipoPago === 'manual' && ordenInfo && (
