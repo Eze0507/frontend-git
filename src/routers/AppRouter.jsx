@@ -43,6 +43,8 @@ const AdminRoutes = () => {
 const AppRouter = () => {
   // Esta comprobación se hace ahora dentro de cada ruta protegida o en el redirect
   const isAuthenticated = !!localStorage.getItem("access");
+  const rawRole = (localStorage.getItem("userRole") || '').toLowerCase();
+  const role = rawRole === 'administrador' ? 'admin' : rawRole;
 
   return (
     <BrowserRouter>
@@ -62,35 +64,39 @@ const AppRouter = () => {
 
         {/* Páginas del panel de administrador */}
         <Route element={<AdminRoutes />}>
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/usuarios" element={<UserPage />} />
-          <Route path="/admin/cargos" element={<CargoPage />} />
-          <Route path="/admin/empleados" element={<EmpleadoPage />} />
-          <Route path="/admin/clientes" element={<ClientePage />} />
-          <Route path="/admin/operaciones/vehiculos" element={<VehiculoPage />} />
-          <Route path="/admin/roles" element={<RolePage />} />
-          <Route path="/ordenes" element={<OrdenPage />} />
-          <Route path="/ordenes/:id" element={<OrdenDetalle />} />
-          <Route path="/presupuestos" element={<PresupuestoPage />} />
-          <Route path="/presupuestos/nuevo" element={<PresupuestoForm />} />
-          <Route path="/presupuestos/:id" element={<PresupuestoDetalle />} />
-          <Route path="/presupuestos/:id/editar" element={<PresupuestoForm />} />
+          {/* Dashboard: admin y empleado */}
+          <Route path="/admin/dashboard" element={(role === 'admin' || role === 'empleado') ? <Dashboard /> : <Navigate to="/admin/home" replace />} />
+          {/* Administración: solo admin */}
+          <Route path="/admin/usuarios" element={(role === 'admin') ? <UserPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/cargos" element={(role === 'admin') ? <CargoPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/empleados" element={(role === 'admin') ? <EmpleadoPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/roles" element={(role === 'admin') ? <RolePage /> : <Navigate to="/admin/home" replace />} />
+          {/* Clientes: admin y empleado */}
+          <Route path="/admin/clientes" element={(role === 'admin' || role === 'empleado') ? <ClientePage /> : <Navigate to="/admin/home" replace />} />
+          {/* Operaciones: admin y empleado */}
+          <Route path="/admin/operaciones/vehiculos" element={(role === 'admin' || role === 'empleado') ? <VehiculoPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/ordenes" element={(role === 'admin' || role === 'empleado') ? <OrdenPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/ordenes/:id" element={(role === 'admin' || role === 'empleado') ? <OrdenDetalle /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/presupuestos" element={(role === 'admin' || role === 'empleado') ? <PresupuestoPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/presupuestos/nuevo" element={(role === 'admin' || role === 'empleado') ? <PresupuestoForm /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/presupuestos/:id" element={(role === 'admin' || role === 'empleado') ? <PresupuestoDetalle /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/presupuestos/:id/editar" element={(role === 'admin' || role === 'empleado') ? <PresupuestoForm /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para ítems de taller */}
-          <Route path="/admin/operaciones/inventario/taller" element={<ItemTallerPage />} />
+          <Route path="/admin/operaciones/inventario/taller" element={(role === 'admin' || role === 'empleado') ? <ItemTallerPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para ítems de venta */}
-          <Route path="/admin/operaciones/inventario/venta" element={<ItemVentaPage />} />
+          <Route path="/admin/operaciones/inventario/venta" element={(role === 'admin' || role === 'empleado') ? <ItemVentaPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para servicios */}
-          <Route path="/admin/operaciones/servicios" element={<ServicioPage />} />
+          <Route path="/admin/operaciones/servicios" element={(role === 'admin' || role === 'empleado') ? <ServicioPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para áreas */}
-          <Route path="/admin/operaciones/area" element={<AreaPage />} />
+          <Route path="/admin/operaciones/area" element={(role === 'admin' || role === 'empleado') ? <AreaPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para bitácora */}
-          <Route path="/admin/bitacora" element={<BitacoraPage />} />
+          <Route path="/admin/bitacora" element={(role === 'admin') ? <BitacoraPage /> : <Navigate to="/admin/home" replace />} />
           {/* Rutas para el módulo de Pagos */}
-          <Route path="/pagos" element={<PagosList />} />
-          <Route path="/pagos/:pagoId" element={<PagoDetalle />} />
-          <Route path="/pagos/checkout/:ordenId" element={<PagoCheckout />} />
+          <Route path="/pagos" element={(role === 'admin') ? <PagosList /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/pagos/:pagoId" element={(role === 'admin') ? <PagoDetalle /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/pagos/checkout/:ordenId" element={(role === 'admin') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
-          <Route path="/admin/reconocimiento" element={<ReconocimientoPage />} />
+          <Route path="/admin/reconocimiento" element={(role === 'admin' || role === 'empleado') ? <ReconocimientoPage /> : <Navigate to="/admin/home" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
