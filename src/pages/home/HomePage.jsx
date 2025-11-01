@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTachometerAlt, FaUser, FaSignOutAlt, FaChevronDown } from 'react-icons/fa';
 import UserProfile from '../../components/UserProfile';
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [username, setUsername] = useState('Usuario');
+  const [userRole, setUserRole] = useState('Invitado');
 
   // Obtener el nombre del usuario del localStorage
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
+    const storedRole = (localStorage.getItem('userRole') || '').toLowerCase();
     if (storedUsername) {
       setUsername(storedUsername);
+    }
+    if (storedRole) {
+      setUserRole(storedRole === 'administrador' ? 'admin' : storedRole);
     }
   }, []);
 
@@ -38,12 +44,24 @@ const HomePage = () => {
               <h1 className="text-xl font-bold text-gray-800">AutoFix</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Link 
-                to="/admin/dashboard"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Panel Administrativo
-              </Link>
+              {userRole !== 'cliente' && (
+                <Link 
+                  to="/admin/dashboard"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/admin/dashboard');
+                    // Fallback duro por si el Router no navega por estado estancado
+                    setTimeout(() => {
+                      if (window.location.pathname !== '/admin/dashboard') {
+                        window.location.href = '/admin/dashboard';
+                      }
+                    }, 50);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                >
+                  Panel Administrativo
+                </Link>
+              )}
               
               {/* User Dropdown */}
               <div className="relative">

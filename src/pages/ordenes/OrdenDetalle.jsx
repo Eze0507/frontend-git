@@ -11,6 +11,7 @@ import HistorialInspecciones from "../../components/HistorialInspecciones.jsx";
 import HistorialPruebasRuta from "../../components/HistorialPruebasRuta.jsx";
 import AsignacionesTecnicos from "../../components/AsignacionesTecnicos.jsx";
 import ImagenesOrden from "../../components/ImagenesOrden.jsx";
+import BotonPagarOrden from "../../components/pagos/BotonPagarOrden.jsx";
 
 // Función para mapear los datos del vehículo al formato que espera VehiculoForm
 function mapVehiculoApiToForm(vehiculoApi, ordenApi, marcasList = [], modelosList = []) {
@@ -703,6 +704,14 @@ const OrdenDetalle = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Botón de pago */}
+            <BotonPagarOrden 
+              ordenId={orden.id} 
+              montoTotal={orden.monto_total}
+              disabled={orden.estado === 'cancelada'}
+              compact={true}
+            />
+            
             {/* Botón imprimir (móvil/compacto) colocado junto al dropdown de estado */}
             <div>
               <button

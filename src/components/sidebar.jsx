@@ -113,6 +113,7 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
         { name: "Presupuesto", path: "/presupuestos" },
         { name: "Orden de Trabajo", path: "/ordenes" },
         { name: "Vehículo", path: "/admin/operaciones/vehiculos" },
+        { name: "Reconocimiento de Placas", path: "/admin/reconocimiento" },
         {
           name: "inventario",
           key: "inventario",
@@ -131,13 +132,24 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       icon: <FaMoneyBillWave className="mr-2" />,
       key: "finanzas",
       subItems: [
-        { name: "Pagos", path: "/admin/finanzas/pagos" },
+        { name: "Historial de Pagos", path: "/pagos" },
         { name: "Factura Proveedor", path: "/admin/finanzas/facturas-proveedor" },
         { name: "Reportes", path: "/admin/finanzas/reportes" },
-        { name: "Métodos de Pago", path: "/admin/finanzas/metodos-pago" },
       ],
     },
   ];
+
+  // Filtrado por rol (sin cambiar estructura ni flujo)
+  const allowedByRole = {
+    admin: ["dashboard", "administracion", "clientes", "operaciones", "finanzas"],
+    empleado: ["dashboard", "clientes", "operaciones"],
+    cliente: [],
+  };
+
+  const normalizedRole = (userRole || '').toLowerCase();
+  const mappedRole = normalizedRole === 'administrador' ? 'admin' : normalizedRole;
+  const allowedKeys = allowedByRole[mappedRole] || [];
+  const filteredMenuItems = menuItems.filter(mi => allowedKeys.includes(mi.key));
 
   return (
     <>
@@ -181,7 +193,7 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       {/* Menú Desplazable */}
       <nav className="flex-1 overflow-y-auto p-4 sidebar-scrollbar">
         <ul className="space-y-2">
-          {menuItems.map((menu) => (
+          {filteredMenuItems.map((menu) => (
             <li key={menu.key}>
               {menu.subItems ? (
                 <>

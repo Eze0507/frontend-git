@@ -82,12 +82,14 @@ const transformOrdenFromAPI = (orden) => {
       month: 'short' 
     }),
     cliente: orden.cliente_nombre || 'Cliente no disponible',
+    cliente_nombre: orden.cliente_nombre || 'Sin cliente', // Nombre del cliente para pagos
     clienteTelefono: orden.cliente_telefono || '',
     marcaModelo: orden.vehiculo_marca && orden.vehiculo_modelo ? 
       `${orden.vehiculo_marca} ${orden.vehiculo_modelo}` : 
       'Vehículo no disponible',
     vehiculo_placa: orden.vehiculo_placa || '',
     total: `Bs${orden.total || 0}`,
+    monto_total: parseFloat(orden.total || 0), // Monto numérico para pagos
     estado: orden.estado,
     fechaCreacion: orden.fecha_creacion,
     fechaInicio: orden.fecha_inicio,
