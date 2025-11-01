@@ -123,7 +123,7 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
           ],
         },
         { name: "Servicios", path: "/admin/operaciones/servicios" },
-        { name: "Proveedores", path: "/admin/operaciones/proveedores" },
+        { name: "Proveedores", path: "/admin/proveedores" },
         { name: "Área", path: "/admin/operaciones/area" },
       ],
     },

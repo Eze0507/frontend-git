@@ -25,6 +25,7 @@ import PagosList from "@/pages/pagos/PagosList.jsx"; // <-- Módulo de Pagos
 import PagoDetalle from "@/pages/pagos/PagoDetalle.jsx"; // <-- Módulo de Pagos
 import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pagos
 import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; // <-- RECONOCIMIENTO DE PLACAS
+import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo de Proveedores
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -97,6 +98,8 @@ const AppRouter = () => {
           <Route path="/pagos/checkout/:ordenId" element={(role === 'admin') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
           <Route path="/admin/reconocimiento" element={(role === 'admin' || role === 'empleado') ? <ReconocimientoPage /> : <Navigate to="/admin/home" replace />} />
+          {/* Ruta para proveedores */}
+          <Route path="/admin/proveedores" element={(role === 'admin' || role === 'empleado') ? <ProveedorPage /> : <Navigate to="/admin/home" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
