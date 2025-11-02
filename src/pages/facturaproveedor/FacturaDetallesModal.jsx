@@ -7,7 +7,7 @@ import {
   updateDetalleFactura,
   deleteDetalleFactura,
   getResumenFactura,
-} from "../../api/facturaproveedorApi";
+} from "../../api/facturaProveedorApi.jsx";
 
 const FacturaDetallesModal = ({ factura, onClose, onUpdate }) => {
   const [detalles, setDetalles] = useState([]);

@@ -7,7 +7,7 @@ import {
   createFacturaProveedor,
   updateFacturaProveedor,
   deleteFacturaProveedor,
-} from "../../api/facturaproveedorApi.jsx";
+} from "../../api/facturaProveedorApi.jsx";
 import { getAllProveedor } from "../../api/proveedorApi.jsx";
 
 const FacturaProveedorPage = () => {
