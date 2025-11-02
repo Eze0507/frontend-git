@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchImagenes, uploadImagen, updateImagen, deleteImagen } from '../api/ordenesApi.jsx';
 
-const ImagenesOrden = ({ ordenId }) => {
+const ImagenesOrden = ({ ordenId, readOnly = false }) => {
   const [imagenes, setImagenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -235,12 +235,14 @@ const ImagenesOrden = ({ ordenId }) => {
           <h3 className="text-lg font-medium text-gray-900">Fotos</h3>
           <p className="text-xs text-gray-500 mt-1">{Array.isArray(imagenes) ? imagenes.length : 0} fotos</p>
         </div>
-        <button
-          onClick={openUploadModal}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-        >
-          + Subir
-        </button>
+        {!readOnly && (
+          <button
+            onClick={openUploadModal}
+            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+          >
+            + Subir
+          </button>
+        )}
       </div>
 
       {/* Grid de imágenes */}
@@ -253,17 +255,22 @@ const ImagenesOrden = ({ ordenId }) => {
           </div>
           <h4 className="text-xl font-medium text-gray-900 mb-3">No hay imágenes</h4>
           <p className="text-gray-500 text-base max-w-md mx-auto mb-6">
-            Sube imágenes relacionadas con esta orden de trabajo para documentar el proceso y mantener un registro visual.
+            {readOnly 
+              ? "No hay imágenes registradas para esta orden de trabajo."
+              : "Sube imágenes relacionadas con esta orden de trabajo para documentar el proceso y mantener un registro visual."
+            }
           </p>
-          <button
-            onClick={openUploadModal}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150 inline-flex items-center space-x-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Subir Primera Imagen</span>
-          </button>
+          {!readOnly && (
+            <button
+              onClick={openUploadModal}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150 inline-flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Subir Primera Imagen</span>
+            </button>
+          )}
         </div>
       ) : (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
@@ -291,13 +298,15 @@ const ImagenesOrden = ({ ordenId }) => {
                   <div className="text-sm text-gray-800 truncate">{imagen.descripcion || 'Sin descripción'}</div>
                   <div className="flex items-center justify-between text-xs text-gray-400 mt-1">
                     <span className="text-xs">#{imagen.id}</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(imagen.id); }}
-                      className="text-red-500 text-sm p-1"
-                      title="Eliminar"
-                    >
-                      ✖
-                    </button>
+                    {!readOnly && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(imagen.id); }}
+                        className="text-red-500 text-sm p-1"
+                        title="Eliminar"
+                      >
+                        ✖
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

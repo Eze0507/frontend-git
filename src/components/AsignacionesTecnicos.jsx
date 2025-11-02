@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchAsignaciones, createAsignacion, deleteAsignacion, fetchEmpleados } from '../api/ordenesApi.jsx';
 
-const AsignacionesTecnicos = ({ ordenId }) => {
+const AsignacionesTecnicos = ({ ordenId, readOnly = false }) => {
   const [asignaciones, setAsignaciones] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -261,27 +261,28 @@ const AsignacionesTecnicos = ({ ordenId }) => {
       </div>
 
       {/* Formulario compacto para añadir técnico */}
-  <div className="bg-white rounded-md p-2 mb-3 border border-gray-100 w-full tecnico-search-container">
-        <div className="flex items-center gap-2 w-full">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onFocus={handleInputFocus}
-            onClick={handleInputClick}
-            onBlur={handleInputBlur}
-            placeholder="Buscar técnico..."
-            className="flex-1 min-w-0 pl-3 pr-2 py-2 border border-gray-200 rounded-md text-sm"
-            disabled={adding || loadingEmpleados}
-          />
-          <button
-            onClick={handleAddTecnico}
-            disabled={!selectedTecnico || adding || loadingEmpleados}
-            className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-60 flex-shrink-0 h-9"
-          >
-            {adding ? '...' : 'Asignar'}
-          </button>
-        </div>
+      {!readOnly && (
+        <div className="bg-white rounded-md p-2 mb-3 border border-gray-100 w-full tecnico-search-container">
+          <div className="flex items-center gap-2 w-full">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onFocus={handleInputFocus}
+              onClick={handleInputClick}
+              onBlur={handleInputBlur}
+              placeholder="Buscar técnico..."
+              className="flex-1 min-w-0 pl-3 pr-2 py-2 border border-gray-200 rounded-md text-sm"
+              disabled={adding || loadingEmpleados}
+            />
+            <button
+              onClick={handleAddTecnico}
+              disabled={!selectedTecnico || adding || loadingEmpleados}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-60 flex-shrink-0 h-9"
+            >
+              {adding ? '...' : 'Asignar'}
+            </button>
+          </div>
         {showDropdown && (
           <div className="mt-2 bg-white border border-gray-100 rounded-md shadow-sm max-h-40 overflow-y-auto">
             {filteredEmpleados.length > 0 ? (
@@ -299,7 +300,8 @@ const AsignacionesTecnicos = ({ ordenId }) => {
             )}
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Lista compacta de técnicos asignados */}
       {asignaciones.length === 0 ? (
@@ -321,15 +323,17 @@ const AsignacionesTecnicos = ({ ordenId }) => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">Activo</span>
-                <button
-                  onClick={() => handleRemoveTecnico(asignacion.id)}
-                  className="p-1 text-red-600 hover:text-red-800 rounded-md"
-                  title="Quitar"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => handleRemoveTecnico(asignacion.id)}
+                    className="p-1 text-red-600 hover:text-red-800 rounded-md"
+                    title="Quitar"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           ))}

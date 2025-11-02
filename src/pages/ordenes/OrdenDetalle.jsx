@@ -62,6 +62,12 @@ function mapVehiculoApiToForm(vehiculoApi, ordenApi, marcasList = [], modelosLis
 const OrdenDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // Detectar si el usuario es cliente
+  const rawRole = (localStorage.getItem("userRole") || '').toLowerCase();
+  const userRole = rawRole === 'administrador' ? 'admin' : rawRole;
+  const isCliente = userRole === 'cliente';
+  
   const [orden, setOrden] = useState(null);
   const [vehiculo, setVehiculo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -690,8 +696,13 @@ const OrdenDetalle = () => {
                 <input
                   type="date"
                   value={fechaFinalizacionLocal}
-                  onChange={(e) => setFechaFinalizacionLocal(e.target.value)}
-                  className="bg-white/10 text-white text-sm border border-white/10 rounded px-2 py-1 outline-none cursor-pointer hover:bg-white/15 focus:bg-white/20 focus:ring-2 focus:ring-white/25"
+                  onChange={isCliente ? undefined : (e) => setFechaFinalizacionLocal(e.target.value)}
+                  disabled={isCliente}
+                  className={`bg-white/10 text-white text-sm border border-white/10 rounded px-2 py-1 outline-none ${
+                    isCliente 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : 'cursor-pointer hover:bg-white/15 focus:bg-white/20 focus:ring-2 focus:ring-white/25'
+                  }`}
                   title="Fecha de finalización"
                 />
                 {guardandoFechaFinalizacion && (
@@ -704,13 +715,15 @@ const OrdenDetalle = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            {/* Botón de pago */}
-            <BotonPagarOrden 
-              ordenId={orden.id} 
-              montoTotal={orden.monto_total}
-              disabled={orden.estado === 'cancelada'}
-              compact={true}
-            />
+            {/* Botón de pago - Para admin/empleado siempre, para clientes solo cuando esté finalizada o entregada */}
+            {(!isCliente || (isCliente && (orden.estado === 'finalizada' || orden.estado === 'entregada'))) && (
+              <BotonPagarOrden 
+                ordenId={orden.id} 
+                montoTotal={orden.monto_total}
+                disabled={orden.estado === 'cancelada'}
+                compact={true}
+              />
+            )}
             
             {/* Botón imprimir (móvil/compacto) colocado junto al dropdown de estado */}
             <div>
@@ -726,40 +739,49 @@ const OrdenDetalle = () => {
               </button>
             </div>
 
-            {/* Dropdown de estado */}
-            <div className="relative">
-              <button 
-                onClick={() => setShowEstadoDropdown(!showEstadoDropdown)}
-                className={`px-4 py-2 rounded text-sm font-medium ${estadoActual.color} text-white flex items-center space-x-2`}
-              >
-                <span>{estadoActual.label}</span>
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {showEstadoDropdown && (
-                <div className="absolute top-full right-0 mt-1 w-36 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                  {estadosDisponibles.map((estado) => (
-                    <button
-                      key={estado.value}
-                      onClick={() => handleEstadoChange(estado.value)}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2 ${
-                        estado.value === orden?.estado ? 'bg-gray-50 font-medium' : ''
-                      }`}
-                    >
-                      <div className={`w-3 h-3 rounded-full ${estado.color.split(' ')[0]}`}></div>
-                      <span className="text-gray-800">{estado.label}</span>
-                      {estado.value === orden?.estado && (
-                        <svg className="w-4 h-4 ml-auto text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Dropdown de estado - Solo para admin/empleado */}
+            {!isCliente && (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowEstadoDropdown(!showEstadoDropdown)}
+                  className={`px-4 py-2 rounded text-sm font-medium ${estadoActual.color} text-white flex items-center space-x-2`}
+                >
+                  <span>{estadoActual.label}</span>
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showEstadoDropdown && (
+                  <div className="absolute top-full right-0 mt-1 w-36 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                    {estadosDisponibles.map((estado) => (
+                      <button
+                        key={estado.value}
+                        onClick={() => handleEstadoChange(estado.value)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2 ${
+                          estado.value === orden?.estado ? 'bg-gray-50 font-medium' : ''
+                        }`}
+                      >
+                        <div className={`w-3 h-3 rounded-full ${estado.color.split(' ')[0]}`}></div>
+                        <span className="text-gray-800">{estado.label}</span>
+                        {estado.value === orden?.estado && (
+                          <svg className="w-4 h-4 ml-auto text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Badge de estado para clientes (solo lectura) */}
+            {isCliente && (
+              <div className={`px-4 py-2 rounded text-sm font-medium ${estadoActual.color} text-white`}>
+                {estadoActual.label}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -820,7 +842,7 @@ const OrdenDetalle = () => {
           <div className="mb-4">
             <h3 className="text-sm font-medium mb-2 text-gray-800 flex items-center">
               FALLA O REQUERIMIENTO
-              {guardandoDescripcion && (
+              {!isCliente && guardandoDescripcion && (
                 <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
                   Guardando...
                 </span>
@@ -828,10 +850,13 @@ const OrdenDetalle = () => {
             </h3>
             <div className="mb-2">
               <textarea
-                placeholder="Agrega una descripción"
+                placeholder={isCliente ? "" : "Agrega una descripción"}
                 value={descripcionLocal}
-                onChange={handleDescripcionChange}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                onChange={isCliente ? undefined : handleDescripcionChange}
+                readOnly={isCliente}
+                className={`w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none resize-none ${
+                  isCliente ? 'bg-gray-50 cursor-default' : 'focus:ring-2 focus:ring-blue-500'
+                }`}
                 rows="3"
               />
             </div>
@@ -870,15 +895,17 @@ const OrdenDetalle = () => {
                       </div>
                       <div className="text-xs font-semibold">Bs{parseFloat(detalle.total).toFixed(2)}</div>
                       <div className="flex justify-center">
-                        <button
-                          onClick={() => handleDeleteItem(index)}
-                          className="text-red-500 hover:text-red-700 p-0 rounded hover:bg-red-50"
-                          title="Eliminar item"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        </button>
+                        {!isCliente && (
+                          <button
+                            onClick={() => handleDeleteItem(index)}
+                            className="text-red-500 hover:text-red-700 p-0 rounded hover:bg-red-50"
+                            title="Eliminar item"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1016,22 +1043,24 @@ const OrdenDetalle = () => {
                 </div>
               )}
             </div>
-            <div className="mt-2">
-              <button 
-                onClick={handleAddItem}
-                disabled={showAddForm}
-                className={`flex items-center space-x-2 ${
-                  showAddForm 
-                    ? 'text-gray-400 cursor-not-allowed' 
-                    : 'text-blue-600 hover:text-blue-800'
-                }`}
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                <span className="text-xs">Agregar nuevo producto o servicio</span>
-              </button>
-            </div>
+            {!isCliente && (
+              <div className="mt-2">
+                <button 
+                  onClick={handleAddItem}
+                  disabled={showAddForm}
+                  className={`flex items-center space-x-2 ${
+                    showAddForm 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-blue-600 hover:text-blue-800'
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs">Agregar nuevo producto o servicio</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Totales */}
@@ -1099,19 +1128,21 @@ const OrdenDetalle = () => {
                         {orden?.vehiculo_marca || vehiculo?.marca_nombre || "Sin marca"} {orden?.vehiculo_modelo || vehiculo?.modelo_nombre || "Sin modelo"}
                       </span>
                     </div>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={handleEditVehiculo}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        Editar
-                      </button>
-                      <button className="text-red-500 hover:text-red-700">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </div>
+                    {!isCliente && (
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={handleEditVehiculo}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Editar
+                        </button>
+                        <button className="text-red-500 hover:text-red-700">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="text-xs text-gray-600">
                     <div>{vehiculo?.placa || vehiculo?.numero_placa || orden?.vehiculo_placa || "Sin placa"}</div>
@@ -1132,9 +1163,10 @@ const OrdenDetalle = () => {
                   <input
                     type="text"
                     value={kilometrajeLocal}
-                    onChange={(e) => setKilometrajeLocal(e.target.value)}
+                    onChange={isCliente ? undefined : (e) => setKilometrajeLocal(e.target.value)}
                     placeholder="Ingrese el kilometraje actual"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isCliente ? 'bg-gray-50 cursor-default' : ''}`}
+                    readOnly={isCliente}
                   />
                 </div>
 
@@ -1170,12 +1202,12 @@ const OrdenDetalle = () => {
                       ].map((nivel) => (
                         <button
                           key={nivel.value}
-                          onClick={() => setNivelCombustibleLocal(nivel.value)}
-                          disabled={nivelCombustibleLocal === null}
+                          onClick={isCliente ? undefined : () => setNivelCombustibleLocal(nivel.value)}
+                          disabled={nivelCombustibleLocal === null || isCliente}
                           className={`w-12 h-8 flex items-center justify-center text-[12px] rounded-md border transition-colors ${
                             nivelCombustibleLocal === nivel.value
                               ? 'bg-blue-500 text-white border-blue-500'
-                              : nivelCombustibleLocal === null
+                              : nivelCombustibleLocal === null || isCliente
                               ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                           }`}
@@ -1220,7 +1252,7 @@ const OrdenDetalle = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Estado del vehículo
-                    {guardandoObservaciones && (
+                    {!isCliente && guardandoObservaciones && (
                       <span className="ml-2 text-xs text-blue-600">
                         Guardando...
                       </span>
@@ -1228,10 +1260,13 @@ const OrdenDetalle = () => {
                   </label>
                   <textarea
                     value={observacionesLocal}
-                    onChange={(e) => setObservacionesLocal(e.target.value)}
+                    onChange={isCliente ? undefined : (e) => setObservacionesLocal(e.target.value)}
                     rows={3}
-                    placeholder="Describa el estado general del vehículo, daños visibles, condición de la carrocería, etc."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={isCliente ? "" : "Describa el estado general del vehículo, daños visibles, condición de la carrocería, etc."}
+                    readOnly={isCliente}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none ${
+                      isCliente ? 'bg-gray-50 cursor-default' : 'focus:ring-2 focus:ring-blue-500'
+                    }`}
                   />
                 </div>
 
@@ -1240,23 +1275,23 @@ const OrdenDetalle = () => {
             )}
 
             {activeTab === "notas" && (
-              <NotasOrden ordenId={id} />
+              <NotasOrden ordenId={id} readOnly={isCliente} />
             )}
 
             {activeTab === "tareas" && (
-              <TareasOrden ordenId={id} />
+              <TareasOrden ordenId={id} readOnly={isCliente} />
             )}
 
             {activeTab === "inventario" && (
-              <InventarioVehiculo ordenId={id} />
+              <InventarioVehiculo ordenId={id} readOnly={isCliente} />
             )}
 
             {activeTab === "fotos" && (
-              <ImagenesOrden ordenId={id} />
+              <ImagenesOrden ordenId={id} readOnly={isCliente} />
             )}
 
             {activeTab === "tecnicos" && (
-              <AsignacionesTecnicos ordenId={id} />
+              <AsignacionesTecnicos ordenId={id} readOnly={isCliente} />
             )}
           </div>
         </div>
@@ -1301,6 +1336,7 @@ const OrdenDetalle = () => {
                 ordenId={id} 
                 onLoad={handleInventarioLoad} 
                 refreshTrigger={inventarioRefreshTrigger}
+                readOnly={isCliente}
               />
             </div>
           </div>
@@ -1325,7 +1361,7 @@ const OrdenDetalle = () => {
               </button>
             </div>
             <div className="overflow-y-auto max-h-[75vh]">
-              <HistorialInspecciones ordenId={id} />
+              <HistorialInspecciones ordenId={id} readOnly={isCliente} />
             </div>
           </div>
         </div>
@@ -1349,7 +1385,7 @@ const OrdenDetalle = () => {
               </button>
             </div>
             <div className="overflow-y-auto max-h-[75vh]">
-              <HistorialPruebasRuta ordenId={id} />
+              <HistorialPruebasRuta ordenId={id} readOnly={isCliente} />
             </div>
           </div>
         </div>

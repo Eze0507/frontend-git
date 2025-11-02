@@ -12,6 +12,7 @@ import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
 import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
 import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
 import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
+import MisOrdenesPage from "@/pages/ordenes/MisOrdenesPage.jsx"; // <-- Página para clientes
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
@@ -57,11 +58,39 @@ const AppRouter = () => {
         />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Ruta de login */}
-        <Route path="/login" element={<LoginPage />} />
+        {/* Ruta de login - redirige si ya está autenticado */}
+        <Route 
+          path="/login" 
+          element={
+            isAuthenticated 
+              ? (role === 'cliente' ? <Navigate to="/admin/home" replace /> : <Navigate to="/admin/dashboard" replace />)
+              : <LoginPage />
+          } 
+        />
         
         {/* Página Home independiente (sin sidebar) */}
-        <Route path="/admin/home" element={<HomePage />} />
+        <Route 
+          path="/admin/home" 
+          element={isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />} 
+        />
+        
+        {/* Mis Órdenes: solo clientes - Vista de solo lectura (sin sidebar) */}
+        <Route 
+          path="/mis-ordenes" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <MisOrdenesPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+        <Route 
+          path="/mis-ordenes/:id" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <OrdenDetalle /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
 
         {/* Páginas del panel de administrador */}
         <Route element={<AdminRoutes />}>
@@ -76,8 +105,10 @@ const AppRouter = () => {
           <Route path="/admin/clientes" element={(role === 'admin' || role === 'empleado') ? <ClientePage /> : <Navigate to="/admin/home" replace />} />
           {/* Operaciones: admin y empleado */}
           <Route path="/admin/operaciones/vehiculos" element={(role === 'admin' || role === 'empleado') ? <VehiculoPage /> : <Navigate to="/admin/home" replace />} />
+          {/* Órdenes: admin y empleado - Panel administrativo */}
           <Route path="/ordenes" element={(role === 'admin' || role === 'empleado') ? <OrdenPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/ordenes/:id" element={(role === 'admin' || role === 'empleado') ? <OrdenDetalle /> : <Navigate to="/admin/home" replace />} />
+          {/* Presupuestos: admin y empleado */}
           <Route path="/presupuestos" element={(role === 'admin' || role === 'empleado') ? <PresupuestoPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/presupuestos/nuevo" element={(role === 'admin' || role === 'empleado') ? <PresupuestoForm /> : <Navigate to="/admin/home" replace />} />
           <Route path="/presupuestos/:id" element={(role === 'admin' || role === 'empleado') ? <PresupuestoDetalle /> : <Navigate to="/admin/home" replace />} />

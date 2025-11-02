@@ -150,11 +150,21 @@ const OrdenList = ({ ordenes, onEdit, onDelete, onAddNew, onEstadoChange }) => {
         }
       }
       
-      const matchesFilters = 
-        (!filtros.estadoOrden || orden.estadoOrden === filtros.estadoOrden || orden.estado === filtros.estadoOrden) &&
-        (!filtros.estadoPago || orden.estadoPago === filtros.estadoPago);
+      // Filtro de estado de pago
+      let matchesPago = true;
+      if (filtros.estadoPago) {
+        if (filtros.estadoPago === "pagado") {
+          // El campo pago puede ser booleano o string
+          matchesPago = orden.pago === true || orden.pago === "true" || orden.pago === "True";
+        } else if (filtros.estadoPago === "pendiente") {
+          matchesPago = orden.pago === false || orden.pago === "false" || orden.pago === "False" || !orden.pago;
+        }
+      }
       
-      return matchesSearch && matchesFecha && matchesFilters;
+      const matchesFilters = 
+        (!filtros.estadoOrden || orden.estadoOrden === filtros.estadoOrden || orden.estado === filtros.estadoOrden);
+      
+      return matchesSearch && matchesFecha && matchesFilters && matchesPago;
     });
   }, [searchTerm, ordenes, filtros]);
 
@@ -343,9 +353,8 @@ const OrdenList = ({ ordenes, onEdit, onDelete, onAddNew, onEstadoChange }) => {
                   className="bg-white text-gray-700 px-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm w-full"
                 >
                   <option value="">Todos los estados de pago</option>
-                  <option value="Pendiente">Pendiente</option>
-                  <option value="Pagado">Pagado</option>
-                  <option value="Parcial">Parcial</option>
+                  <option value="pagado">Pagado</option>
+                  <option value="pendiente">Pendiente</option>
                 </select>
               </div>
               
@@ -420,9 +429,8 @@ const OrdenList = ({ ordenes, onEdit, onDelete, onAddNew, onEstadoChange }) => {
               className="bg-gray-600 text-white px-3 py-1 rounded border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Estado de pago</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="Pagado">Pagado</option>
-              <option value="Parcial">Parcial</option>
+              <option value="pagado">Pagado</option>
+              <option value="pendiente">Pendiente</option>
             </select>
           </div>
           
@@ -439,6 +447,15 @@ const OrdenList = ({ ordenes, onEdit, onDelete, onAddNew, onEstadoChange }) => {
           columns={["numero", "fecha", "cliente", "marcaModelo", "total", "pago", "estado"]}
           data={filtered.map((orden) => ({
             ...orden,
+            pago: (orden.pago === true || orden.pago === "true" || orden.pago === "True") ? (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                ✓ Pagado
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                ✗ Pendiente
+              </span>
+            ),
             estado: <EstadoSelector orden={orden} onEstadoChange={onEstadoChange} />
           }))}
           onView={handleVerDetalle}

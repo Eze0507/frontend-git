@@ -122,10 +122,8 @@ export function useAuth() {
       console.log("🧹 Tokens eliminados del localStorage");
       setLoading(false);
       
-      // Redirigir al login si se proporciona la función navigate
-      if (navigate) {
-        navigate("/login", { replace: true });
-      }
+      // Forzar recarga completa a la página de login
+      window.location.href = "/login";
     }
   };
 

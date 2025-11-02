@@ -137,6 +137,11 @@ const transformOrdenToAPI = (ordenData) => {
 export const fetchAllOrdenes = async () => {
   try {
     console.log('🔄 Obteniendo todas las órdenes...');
+    const token = localStorage.getItem('access');
+    const userRole = localStorage.getItem('userRole');
+    console.log('🔑 Token presente:', !!token);
+    console.log('👤 Rol de usuario:', userRole);
+    
     const response = await apiClient.get('/ordenes/');
     console.log('📋 Órdenes recibidas del backend:', response.data);
     
@@ -147,6 +152,13 @@ export const fetchAllOrdenes = async () => {
     return ordenesTransformadas;
   } catch (error) {
     console.error('❌ Error al obtener órdenes:', error);
+    console.error('📄 Error response:', error.response?.data);
+    console.error('🔢 Status code:', error.response?.status);
+    
+    if (error.response?.status === 500) {
+      throw new Error('Error del servidor. Posiblemente el usuario cliente no está asociado correctamente en la base de datos.');
+    }
+    
     throw new Error(`Error al cargar órdenes: ${error.response?.data?.detail || error.message}`);
   }
 };

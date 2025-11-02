@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchNotasOrden, createNotaOrden, deleteNotaOrden, transformNotaFromAPI } from "../api/ordenesApi.jsx";
 
-const NotasOrden = ({ ordenId }) => {
+const NotasOrden = ({ ordenId, readOnly = false }) => {
   const [notas, setNotas] = useState([]);
   const [nuevaNota, setNuevaNota] = useState("");
   const [loading, setLoading] = useState(true);
@@ -78,37 +78,39 @@ const NotasOrden = ({ ordenId }) => {
 
   return (
     <div className="space-y-4">
-      {/* Formulario para nueva nota */}
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Agregar nueva nota
-        </label>
-        <textarea
-          value={nuevaNota}
-          onChange={(e) => setNuevaNota(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Escribe tu nota aquí..."
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          disabled={creandoNota}
-        />
-        <div className="flex justify-end items-center mt-2">
-          <button
-            onClick={handleCrearNota}
-            disabled={!nuevaNota.trim() || creandoNota}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-          >
-            {creandoNota ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Guardando...</span>
-              </div>
-            ) : (
-              "Agregar nota"
-            )}
-          </button>
+      {/* Formulario para nueva nota - Solo visible para admin/empleado */}
+      {!readOnly && (
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Agregar nueva nota
+          </label>
+          <textarea
+            value={nuevaNota}
+            onChange={(e) => setNuevaNota(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Escribe tu nota aquí..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            disabled={creandoNota}
+          />
+          <div className="flex justify-end items-center mt-2">
+            <button
+              onClick={handleCrearNota}
+              disabled={!nuevaNota.trim() || creandoNota}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              {creandoNota ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Guardando...</span>
+                </div>
+              ) : (
+                "Agregar nota"
+              )}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mensaje de error */}
       {error && (
@@ -142,15 +144,17 @@ const NotasOrden = ({ ordenId }) => {
                     {nota.fecha}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEliminarNota(nota.id)}
-                  className="ml-3 text-gray-400 hover:text-red-600 transition-colors"
-                  title="Eliminar nota"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => handleEliminarNota(nota.id)}
+                    className="ml-3 text-gray-400 hover:text-red-600 transition-colors"
+                    title="Eliminar nota"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           ))

@@ -16,10 +16,16 @@ const navigate = useNavigate(); // 👈 Instanciar el hook
       console.log("✅ Login exitoso");
       const rawRole = (localStorage.getItem('userRole') || '').toLowerCase();
       const role = rawRole === 'administrador' ? 'admin' : rawRole;
+      console.log("🔍 Rol detectado:", role);
+      
+      // Usar window.location.href para forzar recarga completa
       if (role === 'admin' || role === 'empleado') {
-        navigate("/admin/dashboard");
+        window.location.href = "/admin/dashboard";
+      } else if (role === 'cliente') {
+        window.location.href = "/admin/home";
       } else {
-        navigate("/admin/home");
+        // Fallback si no hay rol definido
+        window.location.href = "/admin/home";
       }
     }
 };
