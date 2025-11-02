@@ -25,12 +25,12 @@ const FacturaProveedorForm = ({ onSubmit, onCancel, initialData, proveedores = [
       numero: initialData?.numero || "",
       fecha_registro: initialData?.fecha_registro || "",
       observacion: initialData?.observacion || "",
-      descuento_porcentaje: initialData?.descuento_porcentaje || "0.00",
-      impuesto_porcentaje: initialData?.impuesto_porcentaje || "0.00",
-      subtotal: initialData?.subtotal || "0.00",
-      descuento: initialData?.descuento || "0.00",
-      impuesto: initialData?.impuesto || "0.00",
-      total: initialData?.total || "0.00",
+      descuento_porcentaje: initialData?.descuento_porcentaje?.toString() || "0.00",
+      impuesto_porcentaje: initialData?.impuesto_porcentaje?.toString() || "0.00",
+      subtotal: initialData?.subtotal?.toString() || "0.00",
+      descuento: initialData?.descuento?.toString() || "0.00",
+      impuesto: initialData?.impuesto?.toString() || "0.00",
+      total: initialData?.total?.toString() || "0.00",
       proveedor: initialData?.proveedor_id || 
                 initialData?.proveedor || 
                 "",
@@ -40,6 +40,8 @@ const FacturaProveedorForm = ({ onSubmit, onCancel, initialData, proveedores = [
       id: initialData?.id,
       numero: initialData?.numero,
       proveedor: initialData?.proveedor_id || initialData?.proveedor,
+      descuento_porcentaje: initialData?.descuento_porcentaje,
+      descuento: initialData?.descuento,
     });
   }, [initialData]);
 
@@ -148,9 +150,20 @@ const FacturaProveedorForm = ({ onSubmit, onCancel, initialData, proveedores = [
             value={form.subtotal} 
             onChange={handleNumericChange} 
             required
-            className="w-full px-3 py-2 rounded-md bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            readOnly={isEditing}
+            className={`w-full px-3 py-2 rounded-md border ${
+              isEditing 
+                ? 'bg-gray-100 border-gray-300 cursor-not-allowed text-gray-700' 
+                : 'bg-gray-50 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            }`}
             placeholder="0.00"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            {isEditing 
+              ? '� El subtotal se calcula automáticamente desde los detalles. Use el botón de detalles (📄) para ver/editar items.'
+              : '💡 Ingrese un subtotal inicial. Luego se recalculará automáticamente según los detalles que agregue.'
+            }
+          </p>
         </div>
 
         {/* Descuento */}
@@ -166,8 +179,11 @@ const FacturaProveedorForm = ({ onSubmit, onCancel, initialData, proveedores = [
             />
             <span className="absolute right-3 top-2.5 text-gray-500">%</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Monto: Bs {form.descuento}
+          <p className="text-xs text-gray-600 mt-1 font-medium">
+            Descuento: <span className="text-red-600">Bs {form.descuento}</span> 
+            {parseFloat(form.descuento_porcentaje) > 0 && 
+              <span className="text-gray-500"> ({form.descuento_porcentaje}% del subtotal)</span>
+            }
           </p>
         </div>
 
@@ -184,8 +200,11 @@ const FacturaProveedorForm = ({ onSubmit, onCancel, initialData, proveedores = [
             />
             <span className="absolute right-3 top-2.5 text-gray-500">%</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Monto: Bs {form.impuesto}
+          <p className="text-xs text-gray-600 mt-1 font-medium">
+            IVA: <span className="text-blue-600">Bs {form.impuesto}</span>
+            {parseFloat(form.impuesto_porcentaje) > 0 && 
+              <span className="text-gray-500"> ({form.impuesto_porcentaje}% de la base imponible)</span>
+            }
           </p>
         </div>
 
@@ -196,11 +215,11 @@ const FacturaProveedorForm = ({ onSubmit, onCancel, initialData, proveedores = [
             name="total" 
             value={form.total} 
             readOnly
-            className="w-full px-3 py-2 rounded-md bg-gray-100 border border-gray-300 text-gray-700 cursor-not-allowed"
+            className="w-full px-3 py-2 rounded-md bg-gray-100 border border-gray-300 text-gray-700 font-semibold cursor-not-allowed"
             placeholder="0.00"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Calculado automáticamente: Subtotal - Descuento (Bs {form.descuento}) + IVA (Bs {form.impuesto})
+          <p className="text-xs text-gray-600 mt-1">
+            💡 <strong>Fórmula:</strong> Subtotal (Bs {form.subtotal}) - Descuento (Bs {form.descuento}) + IVA (Bs {form.impuesto})
           </p>
         </div>
       </div>
