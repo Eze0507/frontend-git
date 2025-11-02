@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchInspecciones, deleteInspeccion } from '../api/ordenesApi.jsx';
 import FormularioInspeccion from './FormularioInspeccion.jsx';
 
-const HistorialInspecciones = ({ ordenId }) => {
+const HistorialInspecciones = ({ ordenId, readOnly = false }) => {
   const [inspecciones, setInspecciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -135,12 +135,14 @@ const HistorialInspecciones = ({ ordenId }) => {
           <span className="text-sm text-gray-500">
             {inspecciones.length} {inspecciones.length === 1 ? 'inspección' : 'inspecciones'}
           </span>
-          <button
-            onClick={handleCreate}
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Nueva Inspección
-          </button>
+          {!readOnly && (
+            <button
+              onClick={handleCreate}
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Nueva Inspección
+            </button>
+          )}
         </div>
       </div>
 
@@ -173,26 +175,28 @@ const HistorialInspecciones = ({ ordenId }) => {
                       Técnico: {inspeccion.tecnico}
                     </span>
                   )}
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={() => handleEdit(inspeccion)}
-                      className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
-                      title="Editar inspección"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(inspeccion.id)}
-                      className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                      title="Eliminar inspección"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
+                  {!readOnly && (
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={() => handleEdit(inspeccion)}
+                        className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                        title="Editar inspección"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(inspeccion.id)}
+                        className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                        title="Eliminar inspección"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -7,7 +7,7 @@ import {
   transformInventarioToAPI 
 } from '../api/ordenesApi.jsx';
 
-const InventarioVehiculo = ({ ordenId, onLoad, refreshTrigger }) => {
+const InventarioVehiculo = ({ ordenId, onLoad, refreshTrigger, readOnly = false }) => {
   const [inventario, setInventario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -90,6 +90,11 @@ const InventarioVehiculo = ({ ordenId, onLoad, refreshTrigger }) => {
   };
 
   const handleItemChange = async (key, value) => {
+    // Si está en modo readOnly, no hacer nada
+    if (readOnly) {
+      return;
+    }
+    
     try {
       console.log(`🔄 Cambiando ${key} a ${value}`);
       const updatedInventario = {
@@ -180,12 +185,12 @@ const InventarioVehiculo = ({ ordenId, onLoad, refreshTrigger }) => {
         {inventarioItems.map((item) => (
           <div
             key={item.key}
-            className={`relative p-2 rounded border cursor-pointer transition-all duration-200 ${
+            className={`relative p-2 rounded border transition-all duration-200 ${
               inventario?.[item.key]
                 ? 'border-green-400 bg-green-50'
-                : 'border-gray-300 bg-white hover:border-gray-400'
-            }`}
-            onClick={() => handleItemChange(item.key, !inventario?.[item.key])}
+                : 'border-gray-300 bg-white'
+            } ${!readOnly ? 'cursor-pointer hover:border-gray-400' : 'cursor-not-allowed opacity-75'}`}
+            onClick={!readOnly ? () => handleItemChange(item.key, !inventario?.[item.key]) : undefined}
           >
             <div className="flex items-center justify-between">
               <span className={`text-sm ${
@@ -211,7 +216,7 @@ const InventarioVehiculo = ({ ordenId, onLoad, refreshTrigger }) => {
         ))}
       </div>
 
-      {hasChanges && !saving && (
+      {!readOnly && hasChanges && !saving && (
         <div className="mt-4 p-2 bg-yellow-50 border border-yellow-200 rounded">
           <div className="flex items-center">
             <svg className="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">

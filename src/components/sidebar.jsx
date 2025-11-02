@@ -47,8 +47,8 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       await logout({ navigate });
     } catch (error) {
       console.error("❌ Error durante el logout:", error);
-      // Fallback: redirigir al login incluso si hay error
-      navigate("/login", { replace: true });
+      // Fallback: forzar redirección al login incluso si hay error
+      window.location.href = "/login";
     }
   };
 

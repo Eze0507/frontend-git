@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchTareasOrden, createTareaOrden, deleteTareaOrden, updateTareaOrden, transformTareaFromAPI } from "../api/ordenesApi.jsx";
 
-const TareasOrden = ({ ordenId }) => {
+const TareasOrden = ({ ordenId, readOnly = false }) => {
   const [tareas, setTareas] = useState([]);
   const [nuevaTarea, setNuevaTarea] = useState("");
   const [loading, setLoading] = useState(true);
@@ -109,28 +109,30 @@ const TareasOrden = ({ ordenId }) => {
   return (
     <div className="space-y-3">
       {/* Formulario compacto para nueva tarea */}
-      <div className="bg-gray-50 p-2 rounded-md">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Agregar tarea</label>
-        <div className="flex space-x-2 items-center">
-          <input
-            type="text"
-            value={nuevaTarea}
-            onChange={(e) => setNuevaTarea(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Descripción..."
-            className="flex-1 px-2 py-1 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
-            disabled={creandoTarea}
-            maxLength={200}
-          />
-          <button
-            onClick={handleCrearTarea}
-            disabled={!nuevaTarea.trim() || creandoTarea}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-3 py-1 rounded-md text-sm transition-colors"
-          >
-            {creandoTarea ? '...' : 'Agregar'}
-          </button>
+      {!readOnly && (
+        <div className="bg-gray-50 p-2 rounded-md">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Agregar tarea</label>
+          <div className="flex space-x-2 items-center">
+            <input
+              type="text"
+              value={nuevaTarea}
+              onChange={(e) => setNuevaTarea(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Descripción..."
+              className="flex-1 px-2 py-1 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+              disabled={creandoTarea}
+              maxLength={200}
+            />
+            <button
+              onClick={handleCrearTarea}
+              disabled={!nuevaTarea.trim() || creandoTarea}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-3 py-1 rounded-md text-sm transition-colors"
+            >
+              {creandoTarea ? '...' : 'Agregar'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mensaje de error */}
       {error && (
@@ -182,18 +184,24 @@ const TareasOrden = ({ ordenId }) => {
                       <div key={tarea.id} className="bg-white border border-gray-100 rounded-md p-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2 flex-1">
-                            <button
-                              onClick={() => handleToggleCompletada(tarea.id, tarea.completada)}
-                              disabled={actualizandoTarea === tarea.id}
-                              className="flex-shrink-0 w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center text-sm"
-                              title="Marcar como completada"
-                            >
-                              {actualizandoTarea === tarea.id ? <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div> : ''}
-                            </button>
+                            {!readOnly ? (
+                              <button
+                                onClick={() => handleToggleCompletada(tarea.id, tarea.completada)}
+                                disabled={actualizandoTarea === tarea.id}
+                                className="flex-shrink-0 w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center text-sm"
+                                title="Marcar como completada"
+                              >
+                                {actualizandoTarea === tarea.id ? <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div> : ''}
+                              </button>
+                            ) : (
+                              <div className="flex-shrink-0 w-4 h-4 border-2 border-gray-300 rounded"></div>
+                            )}
                             <span className="text-sm text-gray-800 flex-1">{tarea.descripcion}</span>
                             <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">Pendiente</span>
                           </div>
-                          <button onClick={() => handleEliminarTarea(tarea.id)} className="ml-2 text-gray-400 hover:text-red-600 text-sm" title="Eliminar tarea">✖</button>
+                          {!readOnly && (
+                            <button onClick={() => handleEliminarTarea(tarea.id)} className="ml-2 text-gray-400 hover:text-red-600 text-sm" title="Eliminar tarea">✖</button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -211,18 +219,24 @@ const TareasOrden = ({ ordenId }) => {
                   <div key={tarea.id} className="bg-green-50 border border-green-100 rounded-md p-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 flex-1">
-                        <button
-                          onClick={() => handleToggleCompletada(tarea.id, tarea.completada)}
-                          disabled={actualizandoTarea === tarea.id}
-                          className="flex-shrink-0 w-4 h-4 bg-green-500 border-2 border-green-500 rounded flex items-center justify-center text-sm"
-                          title="Marcar como pendiente"
-                        >
-                          {actualizandoTarea === tarea.id ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : '✓'}
-                        </button>
+                        {!readOnly ? (
+                          <button
+                            onClick={() => handleToggleCompletada(tarea.id, tarea.completada)}
+                            disabled={actualizandoTarea === tarea.id}
+                            className="flex-shrink-0 w-4 h-4 bg-green-500 border-2 border-green-500 rounded flex items-center justify-center text-sm"
+                            title="Marcar como pendiente"
+                          >
+                            {actualizandoTarea === tarea.id ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : '✓'}
+                          </button>
+                        ) : (
+                          <div className="flex-shrink-0 w-4 h-4 bg-green-500 border-2 border-green-500 rounded flex items-center justify-center text-sm text-white">✓</div>
+                        )}
                         <span className="text-sm text-gray-600 flex-1 line-through">{tarea.descripcion}</span>
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Completada</span>
                       </div>
-                      <button onClick={() => handleEliminarTarea(tarea.id)} className="ml-2 text-gray-400 hover:text-red-600 text-sm">✖</button>
+                      {!readOnly && (
+                        <button onClick={() => handleEliminarTarea(tarea.id)} className="ml-2 text-gray-400 hover:text-red-600 text-sm">✖</button>
+                      )}
                     </div>
                   </div>
                 ))}
