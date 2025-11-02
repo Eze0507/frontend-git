@@ -26,7 +26,7 @@ apiClient.interceptors.request.use(
  */
 export async function getAllFacturasProveedor() {
   try {
-    const response = await apiClient.get('/finanzas_facturacion/facturas-proveedor/');
+    const response = await apiClient.get('/facturas-proveedor/');
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   } catch (error) {
     console.error('Error al obtener facturas de proveedor:', error);
@@ -39,7 +39,7 @@ export async function getAllFacturasProveedor() {
  */
 export async function getFacturaProveedorById(id) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/facturas-proveedor/${id}/`);
+    const response = await apiClient.get(`/facturas-proveedor/${id}/`);
     return response.data;
   } catch (error) {
     console.error(`Error al obtener factura de proveedor ${id}:`, error);
@@ -56,7 +56,7 @@ export async function createFacturaProveedor(facturaData) {
     console.log('🔑 Token:', localStorage.getItem('access') ? 'Presente' : 'Ausente');
     console.log('📋 Datos:', facturaData);
     
-    const response = await apiClient.post('/finanzas_facturacion/facturas-proveedor/', facturaData);
+    const response = await apiClient.post('/facturas-proveedor/', facturaData);
     console.log('✅ Factura creada exitosamente:', response.data);
     return response.data;
   } catch (error) {
@@ -93,7 +93,7 @@ export async function updateFacturaProveedor(id, facturaData) {
     console.log('🔑 Token:', localStorage.getItem('access') ? 'Presente' : 'Ausente');
     console.log('📋 Datos:', facturaData);
     
-    const response = await apiClient.put(`/finanzas_facturacion/facturas-proveedor/${id}/`, facturaData);
+    const response = await apiClient.put(`/facturas-proveedor/${id}/`, facturaData);
     console.log('✅ Factura actualizada exitosamente:', response.data);
     return response.data;
   } catch (error) {
@@ -132,7 +132,7 @@ export async function patchFacturaProveedor(id, facturaData) {
   try {
     console.log(`📤 Actualizando parcialmente factura de proveedor ${id}...`);
     
-    const response = await apiClient.patch(`/finanzas_facturacion/facturas-proveedor/${id}/`, facturaData);
+    const response = await apiClient.patch(`/facturas-proveedor/${id}/`, facturaData);
     console.log('✅ Factura actualizada parcialmente:', response.data);
     return response.data;
   } catch (error) {
@@ -163,7 +163,7 @@ export async function deleteFacturaProveedor(id) {
     console.log(`🗑️ Eliminando factura de proveedor ${id}...`);
     console.log('🔑 Token:', localStorage.getItem('access') ? 'Presente' : 'Ausente');
     
-    await apiClient.delete(`/finanzas_facturacion/facturas-proveedor/${id}/`);
+    await apiClient.delete(`/facturas-proveedor/${id}/`);
     console.log('✅ Factura eliminada exitosamente');
     return true;
   } catch (error) {
@@ -204,7 +204,7 @@ export async function deleteFacturaProveedor(id) {
  */
 export async function getFacturasByProveedor(proveedorId) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/facturas-proveedor/por_proveedor/?proveedor_id=${proveedorId}`);
+    const response = await apiClient.get(`/facturas-proveedor/por_proveedor/?proveedor_id=${proveedorId}`);
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   } catch (error) {
     console.error(`Error al obtener facturas del proveedor ${proveedorId}:`, error);
@@ -217,7 +217,7 @@ export async function getFacturasByProveedor(proveedorId) {
  */
 export async function buscarFacturasProveedor(query) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/facturas-proveedor/buscar/?q=${query}`);
+    const response = await apiClient.get(`/facturas-proveedor/buscar/?q=${query}`);
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   } catch (error) {
     console.error('Error al buscar facturas de proveedor:', error);
@@ -230,7 +230,7 @@ export async function buscarFacturasProveedor(query) {
  */
 export async function getDetallesFactura(facturaId) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/facturas-proveedor/${facturaId}/detalles/`);
+    const response = await apiClient.get(`/facturas-proveedor/${facturaId}/detalles/`);
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   } catch (error) {
     console.error(`Error al obtener detalles de la factura ${facturaId}:`, error);
@@ -247,7 +247,7 @@ export async function getDetallesFactura(facturaId) {
  */
 export async function getAllDetallesFactura() {
   try {
-    const response = await apiClient.get('/finanzas_facturacion/detalles-factura-proveedor/');
+    const response = await apiClient.get('/detalles-factura-proveedor/');
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   } catch (error) {
     console.error('Error al obtener detalles de facturas:', error);
@@ -260,7 +260,7 @@ export async function getAllDetallesFactura() {
  */
 export async function getDetalleFacturaById(id) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/detalles-factura-proveedor/${id}/`);
+    const response = await apiClient.get(`/detalles-factura-proveedor/${id}/`);
     return response.data;
   } catch (error) {
     console.error(`Error al obtener detalle de factura ${id}:`, error);
@@ -276,7 +276,7 @@ export async function createDetalleFactura(detalleData) {
     console.log('📤 Creando nuevo detalle de factura...');
     console.log('📋 Datos:', detalleData);
     
-    const response = await apiClient.post('/finanzas_facturacion/detalles-factura-proveedor/', detalleData);
+    const response = await apiClient.post('/detalles-factura-proveedor/', detalleData);
     console.log('✅ Detalle creado exitosamente:', response.data);
     return response.data;
   } catch (error) {
@@ -298,7 +298,7 @@ export async function createDetallesMultiple(detallesArray) {
     console.log('📤 Creando múltiples detalles de factura...');
     console.log('📋 Datos:', detallesArray);
     
-    const response = await apiClient.post('/finanzas_facturacion/detalles-factura-proveedor/crear_multiple/', detallesArray);
+    const response = await apiClient.post('/detalles-factura-proveedor/crear_multiple/', detallesArray);
     console.log('✅ Detalles creados exitosamente:', response.data);
     return response.data;
   } catch (error) {
@@ -319,7 +319,7 @@ export async function updateDetalleFactura(id, detalleData) {
   try {
     console.log(`📤 Actualizando detalle de factura ${id}...`);
     
-    const response = await apiClient.put(`/finanzas_facturacion/detalles-factura-proveedor/${id}/`, detalleData);
+    const response = await apiClient.put(`/detalles-factura-proveedor/${id}/`, detalleData);
     console.log('✅ Detalle actualizado exitosamente:', response.data);
     return response.data;
   } catch (error) {
@@ -340,7 +340,7 @@ export async function deleteDetalleFactura(id) {
   try {
     console.log(`🗑️ Eliminando detalle de factura ${id}...`);
     
-    await apiClient.delete(`/finanzas_facturacion/detalles-factura-proveedor/${id}/`);
+    await apiClient.delete(`/detalles-factura-proveedor/${id}/`);
     console.log('✅ Detalle eliminado exitosamente');
     return true;
   } catch (error) {
@@ -359,7 +359,7 @@ export async function deleteDetalleFactura(id) {
  */
 export async function getDetallesByFactura(facturaId) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/detalles-factura-proveedor/por_factura/?factura_id=${facturaId}`);
+    const response = await apiClient.get(`/detalles-factura-proveedor/por_factura/?factura_id=${facturaId}`);
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   } catch (error) {
     console.error(`Error al obtener detalles de la factura ${facturaId}:`, error);
@@ -372,7 +372,7 @@ export async function getDetallesByFactura(facturaId) {
  */
 export async function getResumenFactura(facturaId) {
   try {
-    const response = await apiClient.get(`/finanzas_facturacion/detalles-factura-proveedor/resumen_factura/?factura_id=${facturaId}`);
+    const response = await apiClient.get(`/detalles-factura-proveedor/resumen_factura/?factura_id=${facturaId}`);
     return response.data;
   } catch (error) {
     console.error(`Error al obtener resumen de la factura ${facturaId}:`, error);
