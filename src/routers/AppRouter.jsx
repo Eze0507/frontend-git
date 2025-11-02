@@ -10,6 +10,7 @@ import RegisterPage from "@/pages/register/RegisterPage.jsx"; // <-- CORREGIDO
 import EmpleadoPage from "@/pages/empleados/EmpleadoPage.jsx"; // <-- CORREGIDO
 import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
 import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
+import CitaPage from "@/pages/cliente/citas/CitaPage.jsx"; // <-- Citas
 import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
 import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
 import MisOrdenesPage from "@/pages/ordenes/MisOrdenesPage.jsx"; // <-- Página para clientes
@@ -27,6 +28,7 @@ import PagoDetalle from "@/pages/pagos/PagoDetalle.jsx"; // <-- Módulo de Pagos
 import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pagos
 import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; // <-- RECONOCIMIENTO DE PLACAS
 import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo de Proveedores
+import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.jsx"; // <-- Módulo de Facturas Proveedor
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -103,6 +105,7 @@ const AppRouter = () => {
           <Route path="/admin/roles" element={(role === 'admin') ? <RolePage /> : <Navigate to="/admin/home" replace />} />
           {/* Clientes: admin y empleado */}
           <Route path="/admin/clientes" element={(role === 'admin' || role === 'empleado') ? <ClientePage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/clientes/citas" element={(role === 'admin' || role === 'empleado') ? <CitaPage /> : <Navigate to="/admin/home" replace />} />
           {/* Operaciones: admin y empleado */}
           <Route path="/admin/operaciones/vehiculos" element={(role === 'admin' || role === 'empleado') ? <VehiculoPage /> : <Navigate to="/admin/home" replace />} />
           {/* Órdenes: admin y empleado - Panel administrativo */}
@@ -127,6 +130,8 @@ const AppRouter = () => {
           <Route path="/pagos" element={(role === 'admin') ? <PagosList /> : <Navigate to="/admin/home" replace />} />
           <Route path="/pagos/:pagoId" element={(role === 'admin') ? <PagoDetalle /> : <Navigate to="/admin/home" replace />} />
           <Route path="/pagos/checkout/:ordenId" element={(role === 'admin') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
+          {/* Ruta para factura de proveedor */}
+          <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
           <Route path="/admin/reconocimiento" element={(role === 'admin' || role === 'empleado') ? <ReconocimientoPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para proveedores */}
