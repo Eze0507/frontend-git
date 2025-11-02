@@ -10,6 +10,7 @@ import RegisterPage from "@/pages/register/RegisterPage.jsx"; // <-- CORREGIDO
 import EmpleadoPage from "@/pages/empleados/EmpleadoPage.jsx"; // <-- CORREGIDO
 import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
 import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
+import CitaPage from "@/pages/cliente/citas/CitaPage.jsx"; // <-- Citas
 import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
 import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
@@ -73,6 +74,7 @@ const AppRouter = () => {
           <Route path="/admin/roles" element={(role === 'admin') ? <RolePage /> : <Navigate to="/admin/home" replace />} />
           {/* Clientes: admin y empleado */}
           <Route path="/admin/clientes" element={(role === 'admin' || role === 'empleado') ? <ClientePage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/clientes/citas" element={(role === 'admin' || role === 'empleado') ? <CitaPage /> : <Navigate to="/admin/home" replace />} />
           {/* Operaciones: admin y empleado */}
           <Route path="/admin/operaciones/vehiculos" element={(role === 'admin' || role === 'empleado') ? <VehiculoPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/ordenes" element={(role === 'admin' || role === 'empleado') ? <OrdenPage /> : <Navigate to="/admin/home" replace />} />
