@@ -27,11 +27,11 @@ const PagoCheckout = () => {
   const { ordenId } = useParams();
   const navigate = useNavigate();
   
-  // En producción, FORZAR solo pago con Stripe (modo prueba)
-  const isProduction = window.location.hostname !== 'localhost' && 
-                       window.location.hostname !== '127.0.0.1';
+  // DESHABILITADO: Ya no diferenciamos entre producción y local
+  // Siempre se va directo a pago con tarjeta
+  const isProduction = false; // Desactivado para no mostrar mensajes de modo prueba
   
-  const [tipoPago, setTipoPago] = useState('stripe'); // Siempre 'stripe' en producción
+  const [tipoPago, setTipoPago] = useState('stripe'); // Siempre directo a Stripe
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingOrden, setLoadingOrden] = useState(true);
@@ -300,34 +300,10 @@ const PagoCheckout = () => {
           </div>
         </div>
 
-        {/* Banner de modo prueba en producción */}
-        {isProduction && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <FaCreditCard className="text-blue-600 text-2xl flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-semibold text-blue-800 mb-2">🧪 Modo de Prueba Activado</h4>
-                <p className="text-blue-700 text-sm mb-3">
-                  Este sistema está en modo de prueba. Usa las siguientes tarjetas de prueba de Stripe:
-                </p>
-                <div className="bg-white rounded p-3 text-sm">
-                  <p className="font-mono text-blue-900 mb-1">
-                    <strong>Tarjeta exitosa:</strong> 4242 4242 4242 4242
-                  </p>
-                  <p className="font-mono text-blue-900 mb-1">
-                    <strong>CVV:</strong> Cualquier 3 dígitos (ej: 123)
-                  </p>
-                  <p className="font-mono text-blue-900">
-                    <strong>Fecha:</strong> Cualquier fecha futura (ej: 12/25)
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Selector de tipo de pago - Solo mostrar en desarrollo local */}
-        {!isProduction && (
+        {/* Banner de modo prueba - ELIMINADO */}
+        
+        {/* Selector de tipo de pago - ELIMINADO - Siempre va directo a Stripe */}
+        {false && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Selecciona el método de pago</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -409,14 +385,14 @@ const PagoCheckout = () => {
                 monto={ordenInfo.monto_total}
                 ordenNumero={ordenInfo.numero_orden}
                 loading={loading}
-                isTestMode={isProduction}
+                isTestMode={false}
               />
             </Elements>
           </>
         )}
 
-        {/* Pago manual SOLO disponible en desarrollo */}
-        {!isProduction && tipoPago === 'manual' && ordenInfo && (
+        {/* Pago manual DESHABILITADO - Ya no se usa */}
+        {false && tipoPago === 'manual' && ordenInfo && (
           <PagoManualForm
             ordenTrabajoId={ordenId}
             montoTotal={ordenInfo.monto_total}

@@ -125,23 +125,7 @@ const StripePaymentForm = ({ clientSecret, onSuccess, onError, monto, ordenNumer
 
       {/* Formulario */}
       <form onSubmit={handleSubmit}>
-        {/* Banner de tarjeta de prueba */}
-        {isTestMode && (
-          <div className="mb-4 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-            <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-              <FaCreditCard className="text-green-600" />
-              🧪 Usa una tarjeta de prueba
-            </h4>
-            <div className="text-sm text-green-700 space-y-1">
-              <p className="font-mono bg-white p-2 rounded">
-                <strong>Número:</strong> 4242 4242 4242 4242
-              </p>
-              <p><strong>CVV:</strong> Cualquier 3 dígitos (ej: 123)</p>
-              <p><strong>Fecha:</strong> Cualquier mes/año futuro (ej: 12/25)</p>
-              <p><strong>Código postal:</strong> Cualquiera (ej: 12345)</p>
-            </div>
-          </div>
-        )}
+        {/* Banner de tarjeta de prueba - ELIMINADO */}
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,7 +147,7 @@ const StripePaymentForm = ({ clientSecret, onSuccess, onError, monto, ordenNumer
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800 flex items-center gap-2">
             <FaLock />
-            <span>{isTestMode ? 'Modo de prueba - Pagos simulados' : 'Pago 100% seguro procesado por Stripe'}</span>
+            <span>Pago 100% seguro procesado por Stripe</span>
           </p>
         </div>
 
