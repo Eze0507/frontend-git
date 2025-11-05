@@ -14,6 +14,8 @@ import CitaPage from "@/pages/cliente/citas/CitaPage.jsx"; // <-- Citas
 import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
 import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
 import MisOrdenesPage from "@/pages/ordenes/MisOrdenesPage.jsx"; // <-- Página para clientes
+import MisCitasPage from "@/pages/cliente/citas_cliente/MisCitasPage.jsx"; // <-- Página de citas para clientes
+import NuevaCitaPage from "@/pages/cliente/citas_cliente/NuevaCitaPage.jsx"; // <-- Página para crear nueva cita
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
@@ -90,6 +92,24 @@ const AppRouter = () => {
           element={
             isAuthenticated && role === 'cliente' 
               ? <OrdenDetalle /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+        
+        {/* Mis Citas: solo clientes - Vista de solo lectura (sin sidebar) */}
+        <Route 
+          path="/mis-citas" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <MisCitasPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+        <Route 
+          path="/mis-citas/nueva" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <NuevaCitaPage /> 
               : <Navigate to="/login" replace />
           } 
         />
