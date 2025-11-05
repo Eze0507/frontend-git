@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTachometerAlt, FaUser, FaSignOutAlt, FaChevronDown, FaClipboardList } from 'react-icons/fa';
+import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTachometerAlt, FaUser, FaSignOutAlt, FaChevronDown, FaClipboardList, FaCalendarAlt } from 'react-icons/fa';
 import UserProfile from '../../components/UserProfile';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -94,19 +94,32 @@ const HomePage = () => {
                       </button>
                       
                       {userRole === 'cliente' && (
-                        <button
-                          onClick={() => {
-                            console.log('🔵 [HomePage] Click en Mis Órdenes');
-                            console.log('🔵 [HomePage] userRole:', userRole);
-                            console.log('🔵 [HomePage] Navegando a /mis-ordenes');
-                            setShowUserDropdown(false);
-                            navigate('/mis-ordenes');
-                          }}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                        >
-                          <FaClipboardList className="mr-3 text-gray-400" />
-                          Mis Órdenes
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              console.log('🔵 [HomePage] Click en Mis Órdenes');
+                              console.log('🔵 [HomePage] userRole:', userRole);
+                              console.log('🔵 [HomePage] Navegando a /mis-ordenes');
+                              setShowUserDropdown(false);
+                              navigate('/mis-ordenes');
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <FaClipboardList className="mr-3 text-gray-400" />
+                            Mis Órdenes
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log('🔵 [HomePage] Click en Mis Citas');
+                              setShowUserDropdown(false);
+                              navigate('/mis-citas');
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <FaCalendarAlt className="mr-3 text-gray-400" />
+                            Mis Citas
+                          </button>
+                        </>
                       )}
                       
                       <hr className="border-gray-200" />
