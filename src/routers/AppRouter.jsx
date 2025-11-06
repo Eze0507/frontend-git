@@ -14,6 +14,8 @@ import CitaPage from "@/pages/cliente/citas/CitaPage.jsx"; // <-- Citas
 import OrdenPage from "@/pages/ordenes/OrdenPage.jsx"; // <-- CORREGIDO
 import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
 import MisOrdenesPage from "@/pages/ordenes/MisOrdenesPage.jsx"; // <-- Página para clientes
+import MisCitasPage from "@/pages/cliente/citas_cliente/MisCitasPage.jsx"; // <-- Página de citas para clientes
+import NuevaCitaPage from "@/pages/cliente/citas_cliente/NuevaCitaPage.jsx"; // <-- Página para crear nueva cita
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
@@ -94,6 +96,24 @@ const AppRouter = () => {
               : <Navigate to="/login" replace />
           } 
         />
+        
+        {/* Mis Citas: solo clientes - Vista de solo lectura (sin sidebar) */}
+        <Route 
+          path="/mis-citas" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <MisCitasPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+        <Route 
+          path="/mis-citas/nueva" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <NuevaCitaPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
 
         {/* Páginas del panel de administrador */}
         <Route element={<AdminRoutes />}>
@@ -130,7 +150,7 @@ const AppRouter = () => {
           {/* Rutas para el módulo de Pagos */}
           <Route path="/pagos" element={(role === 'admin') ? <PagosList /> : <Navigate to="/admin/home" replace />} />
           <Route path="/pagos/:pagoId" element={(role === 'admin') ? <PagoDetalle /> : <Navigate to="/admin/home" replace />} />
-          <Route path="/pagos/checkout/:ordenId" element={(role === 'admin') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/pagos/checkout/:ordenId" element={(role === 'admin' || role === 'cliente') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para factura de proveedor */}
           <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reportes */}

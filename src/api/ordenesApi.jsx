@@ -111,8 +111,8 @@ const transformOrdenFromAPI = (orden) => {
     estadoOrden: orden.estado,
     asignadoA: "", // Agregar si tienes este campo
     prioridad: "Media", // Agregar si tienes este campo
-    estadoPago: "Pendiente", // Agregar si tienes este campo
-    pago: ""
+    estadoPago: orden.pago ? "Pagado" : "Pendiente", // Estado de pago basado en el booleano
+    pago: orden.pago  // Mantener el valor booleano original del backend
   };
 };
 

@@ -27,6 +27,10 @@ const PagoCheckout = () => {
   const { ordenId } = useParams();
   const navigate = useNavigate();
   
+  // Detectar si el usuario es cliente
+  const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+  const isCliente = userRole === 'cliente';
+  
   // DESHABILITADO: Ya no diferenciamos entre producción y local
   // Siempre se va directo a pago con tarjeta
   const isProduction = false; // Desactivado para no mostrar mensajes de modo prueba
@@ -163,7 +167,12 @@ const PagoCheckout = () => {
   };
 
   const handleVolverOrdenes = () => {
-    navigate('/ordenes');
+    // Si es cliente, redirigir a "Mis Órdenes", si no a "Órdenes de Trabajo"
+    if (isCliente) {
+      navigate('/mis-ordenes');
+    } else {
+      navigate('/ordenes');
+    }
   };
 
   const handleNuevoPago = () => {
@@ -198,7 +207,7 @@ const PagoCheckout = () => {
             onClick={handleVolverOrdenes}
             className="w-full py-3 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
           >
-            Volver a Órdenes
+            {isCliente ? 'Volver a Mis Órdenes' : 'Volver a Órdenes'}
           </button>
         </div>
       </div>
@@ -222,7 +231,7 @@ const PagoCheckout = () => {
             onClick={handleVolverOrdenes}
             className="w-full py-3 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
           >
-            Volver a Órdenes
+            {isCliente ? 'Volver a Mis Órdenes' : 'Volver a Órdenes'}
           </button>
         </div>
       </div>
@@ -268,7 +277,7 @@ const PagoCheckout = () => {
               onClick={handleVolverOrdenes}
               className="w-full py-3 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
             >
-              Volver a Órdenes
+              {isCliente ? 'Volver a Mis Órdenes' : 'Volver a Órdenes'}
             </button>
             <button
               onClick={handleNuevoPago}

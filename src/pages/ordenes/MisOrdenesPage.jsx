@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAllOrdenes } from "../../api/ordenesApi";
+import BotonPagarOrden from "../../components/pagos/BotonPagarOrden.jsx";
 
 const MisOrdenesPage = () => {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ const MisOrdenesPage = () => {
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-3xl font-bold text-gray-900">Mis Órdenes de Trabajo</h1>
               <button
-                onClick={() => navigate('/admin/home')}
+                onClick={() => navigate('/home')}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Volver
@@ -154,7 +155,7 @@ const MisOrdenesPage = () => {
               <p className="text-gray-600 mt-1">Historial completo de tus órdenes</p>
             </div>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/admin/home')}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Volver
@@ -311,12 +312,24 @@ const MisOrdenesPage = () => {
 
                   {/* Botón de acción */}
                   <div className="mt-4 lg:mt-0 lg:ml-6">
-                    <button
-                      onClick={() => handleVerDetalle(orden)}
-                      className="w-full lg:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                    >
-                      Ver detalle
-                    </button>
+                    <div className="flex flex-col lg:flex-row gap-2">
+                      <button
+                        onClick={() => handleVerDetalle(orden)}
+                        className="w-full lg:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Ver detalle
+                      </button>
+                      
+                      {/* Botón de pagar - Solo si NO está pagada y está finalizada o entregada */}
+                      {!orden.pago && (orden.estado === 'finalizada' || orden.estado === 'entregada') && (
+                        <BotonPagarOrden 
+                          ordenId={orden.id} 
+                          montoTotal={orden.monto_total}
+                          disabled={orden.estado === 'cancelada'}
+                          compact={true}
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -445,19 +445,33 @@ const OrdenList = ({ ordenes, onEdit, onDelete, onAddNew, onEstadoChange }) => {
         <CustomTable
           title="Órdenes de trabajo"
           columns={["numero", "fecha", "cliente", "marcaModelo", "total", "pago", "estado"]}
-          data={filtered.map((orden) => ({
-            ...orden,
-            pago: (orden.pago === true || orden.pago === "true" || orden.pago === "True") ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                ✓ Pagado
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                ✗ Pendiente
-              </span>
-            ),
-            estado: <EstadoSelector orden={orden} onEstadoChange={onEstadoChange} />
-          }))}
+          data={filtered.map((orden) => {
+            // Debug mejorado: ver el valor EXACTO del campo pago
+            console.log(`Orden ${orden.numero} - pago:`, JSON.stringify(orden.pago), `tipo: ${typeof orden.pago}`);
+            
+            // Convertir el valor de pago a booleano si viene como string
+            const isPagado = orden.pago === true || 
+                            orden.pago === "true" || 
+                            orden.pago === "True" ||
+                            orden.pago === "TRUE" ||
+                            orden.pago === 1 ||
+                            orden.pago === "1" ||
+                            (typeof orden.pago === 'string' && orden.pago.toLowerCase() === 'pagado');
+            
+            return {
+              ...orden,
+              pago: isPagado ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                  ✓ Pagado
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                  ✗ Pendiente
+                </span>
+              ),
+              estado: <EstadoSelector orden={orden} onEstadoChange={onEstadoChange} />
+            };
+          })}
           onView={handleVerDetalle}
           onDelete={(idOrRow) => onDelete(idOrRow.id || idOrRow)}
           hideEdit={true}
@@ -489,14 +503,27 @@ const OrdenList = ({ ordenes, onEdit, onDelete, onAddNew, onEstadoChange }) => {
                   <span className="text-sm text-gray-500">Vehículo:</span>
                   <span className="ml-2 text-gray-700">{orden.marcaModelo}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <div>
                     <span className="text-sm text-gray-500">Total:</span>
                     <span className="ml-2 font-semibold text-gray-900">{orden.total}</span>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-500">Pago:</span>
-                    <span className="ml-2 text-gray-700">{orden.pago || "Pendiente"}</span>
+                    {(orden.pago === true || 
+                      orden.pago === "true" || 
+                      orden.pago === "True" ||
+                      orden.pago === "TRUE" ||
+                      orden.pago === 1 ||
+                      orden.pago === "1" ||
+                      (typeof orden.pago === 'string' && orden.pago.toLowerCase() === 'pagado')) ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        ✓ Pagado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                        ⏱ Pendiente
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
