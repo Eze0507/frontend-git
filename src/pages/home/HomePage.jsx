@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTachometerAlt, FaUser, FaSignOutAlt, FaChevronDown, FaClipboardList } from 'react-icons/fa';
-import UserProfile from '../../components/UserProfile';
-import { useAuth } from '../../hooks/useAuth';
+import UserProfile from '@/components/UserProfile';
+import FloatingChatbot from '@/components/FloatingChatbot';
+import { useAuth } from '@/hooks/useAuth';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -260,6 +261,9 @@ const HomePage = () => {
       {showProfile && (
         <UserProfile onClose={() => setShowProfile(false)} />
       )}
+
+      {/* Floating Chatbot */}
+      <FloatingChatbot />
     </div>
   );
 };
