@@ -15,6 +15,8 @@ import {
   FaCar,
   FaUser,
   FaBars,
+  FaSearch,
+  FaTimes,
 } from "react-icons/fa";
 import UserProfile from './UserProfile.jsx';
 import { useAuth } from '../hooks/useAuth.jsx';
@@ -23,6 +25,8 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const [openSubMenu, setOpenSubMenu] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();
   const location = useLocation(); // Hook para detectar cambios de ruta
   const [username, setUsername] = useState(localStorage.getItem("username") || "Usuario");
@@ -151,6 +155,59 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
   const allowedKeys = allowedByRole[mappedRole] || [];
   const filteredMenuItems = menuItems.filter(mi => allowedKeys.includes(mi.key));
 
+  // 🔍 Lógica de búsqueda
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const results = [];
+
+    filteredMenuItems.forEach((menu) => {
+      // Buscar en menú principal (solo si tiene path directo)
+      if (menu.path && menu.title.toLowerCase().includes(query)) {
+        results.push({
+          title: menu.title,
+          path: menu.path,
+          icon: menu.icon,
+        });
+      }
+
+      // Buscar en submenús
+      if (menu.subItems) {
+        menu.subItems.forEach((sub) => {
+          // Solo agregar si tiene path (no es contenedor)
+          if (sub.path && sub.name.toLowerCase().includes(query)) {
+            results.push({
+              title: sub.name,
+              path: sub.path,
+              icon: menu.icon,
+              parent: menu.title,
+            });
+          }
+
+          // Buscar en sub-submenús
+          if (sub.subItems) {
+            sub.subItems.forEach((ssub) => {
+              if (ssub.path && ssub.name.toLowerCase().includes(query)) {
+                results.push({
+                  title: ssub.name,
+                  path: ssub.path,
+                  icon: menu.icon,
+                  parent: `${menu.title} > ${sub.name}`,
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    setSearchResults(results);
+  }, [searchQuery, filteredMenuItems]);
+
   return (
     <>
       {/* Botón toggle cuando el sidebar está oculto */}
@@ -188,6 +245,58 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
           <h2 className="text-2xl font-bold text-white">AutoFix</h2>
           <p className="text-xs text-gray-400 mt-1">Sistema de Gestión Automotriz</p>
         </Link>
+      </div>
+
+      {/* 🔍 Buscador */}
+      <div className="px-4 py-3 border-b border-gray-700">
+        <div className="relative">
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+          <input
+            type="text"
+            placeholder="Buscar funcionalidad..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-8 py-2 bg-gray-900 text-white text-sm rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-500"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
+            >
+              <FaTimes className="text-sm" />
+            </button>
+          )}
+        </div>
+
+        {/* Resultados */}
+        {searchQuery && searchResults.length > 0 && (
+          <div className="mt-2 bg-gray-900 rounded-md max-h-64 overflow-y-auto">
+            {searchResults.map((result, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setSearchQuery("");
+                  window.location.href = result.path;
+                }}
+                className="w-full flex items-start gap-2 px-3 py-2 hover:bg-gray-700 rounded transition-colors text-left"
+              >
+                <span className="text-gray-400 mt-0.5">{result.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white">{result.title}</p>
+                  {result.parent && (
+                    <p className="text-xs text-gray-400">{result.parent}</p>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {searchQuery && searchResults.length === 0 && (
+          <div className="mt-2 p-3 text-center text-sm text-gray-400">
+            No se encontraron resultados
+          </div>
+        )}
       </div>
 
       {/* Menú Desplazable */}
@@ -237,24 +346,24 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
                                 <ul className="ml-4">
                                   {sub.subItems.map((ssub, sidx) => (
                                     <li key={sidx}>
-                                      <Link
-                                        to={ssub.path}
-                                        className="block p-2 hover:bg-gray-700 text-white"
+                                      <button
+                                        onClick={() => window.location.href = ssub.path}
+                                        className="w-full text-left block p-2 hover:bg-gray-700 text-white"
                                       >
                                         {ssub.name}
-                                      </Link>
+                                      </button>
                                     </li>
                                   ))}
                                 </ul>
                               )}
                             </>
                           ) : (
-                            <Link
-                              to={sub.path}
-                              className="block p-2 hover:bg-gray-700"
+                            <button
+                              onClick={() => window.location.href = sub.path}
+                              className="w-full text-left block p-2 hover:bg-gray-700"
                             >
                               {sub.name}
-                            </Link>
+                            </button>
                           )}
                         </li>
                       ))}
@@ -263,13 +372,13 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
                 </>
               ) : (
                 /* 🔗 Items simples (ej: Dashboard) */
-                <Link
-                  to={menu.path}
-                  className="flex items-center p-2 hover:bg-gray-700"
+                <button
+                  onClick={() => window.location.href = menu.path}
+                  className="w-full text-left flex items-center p-2 hover:bg-gray-700"
                 >
                   {menu.icon}
                   <span>{menu.title}</span>
-                </Link>
+                </button>
               )}
             </li>
           ))}

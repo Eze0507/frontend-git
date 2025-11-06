@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FaMoneyBillWave, FaUniversity, FaCreditCard, FaSpinner } from 'react-icons/fa';
 import { createPagoManual } from '../../api/pagosApi';
 
-const PagoManualForm = ({ ordenTrabajoId, montoTotal, onSuccess, onCancel }) => {
+const PagoManualForm = ({ ordenTrabajoId, montoTotal, onSuccess, onCancel, soloEfectivo = false }) => {
   const [formData, setFormData] = useState({
     metodo_pago: 'efectivo',
     monto: montoTotal || '',
@@ -13,11 +13,14 @@ const PagoManualForm = ({ ordenTrabajoId, montoTotal, onSuccess, onCancel }) => 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const metodosPago = [
-    { value: 'efectivo', label: 'Efectivo', icon: FaMoneyBillWave, color: 'green' },
-    { value: 'transferencia', label: 'Transferencia Bancaria', icon: FaUniversity, color: 'blue' },
-    { value: 'tarjeta', label: 'Tarjeta (Físico)', icon: FaCreditCard, color: 'purple' }
-  ];
+  // Si soloEfectivo es true, solo mostrar efectivo
+  const metodosPago = soloEfectivo 
+    ? [{ value: 'efectivo', label: 'Efectivo', icon: FaMoneyBillWave, color: 'green' }]
+    : [
+        { value: 'efectivo', label: 'Efectivo', icon: FaMoneyBillWave, color: 'green' },
+        { value: 'transferencia', label: 'Transferencia Bancaria', icon: FaUniversity, color: 'blue' },
+        { value: 'tarjeta', label: 'Tarjeta (Físico)', icon: FaCreditCard, color: 'purple' }
+      ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -76,43 +79,60 @@ const PagoManualForm = ({ ordenTrabajoId, montoTotal, onSuccess, onCancel }) => 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       {/* Header */}
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Registrar Pago Manual</h3>
+      <h3 className="text-xl font-semibold text-gray-800 mb-6">
+        {soloEfectivo ? 'Registrar Pago en Efectivo' : 'Registrar Pago Manual'}
+      </h3>
 
       <form onSubmit={handleSubmit}>
         {/* Selección de método de pago */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Método de Pago
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {metodosPago.map((metodo) => {
-              const Icon = metodo.icon;
-              const isSelected = formData.metodo_pago === metodo.value;
-              
-              return (
-                <button
-                  key={metodo.value}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, metodo_pago: metodo.value }))}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    isSelected
-                      ? `border-${metodo.color}-500 bg-${metodo.color}-50`
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className={`mx-auto mb-2 text-2xl ${
-                    isSelected ? `text-${metodo.color}-600` : 'text-gray-400'
-                  }`} />
-                  <span className={`text-sm font-medium ${
-                    isSelected ? `text-${metodo.color}-700` : 'text-gray-600'
-                  }`}>
-                    {metodo.label}
-                  </span>
-                </button>
-              );
-            })}
+        {!soloEfectivo && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Método de Pago
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {metodosPago.map((metodo) => {
+                const Icon = metodo.icon;
+                const isSelected = formData.metodo_pago === metodo.value;
+                
+                return (
+                  <button
+                    key={metodo.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, metodo_pago: metodo.value }))}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      isSelected
+                        ? `border-${metodo.color}-500 bg-${metodo.color}-50`
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <Icon className={`mx-auto mb-2 text-2xl ${
+                      isSelected ? `text-${metodo.color}-600` : 'text-gray-400'
+                    }`} />
+                    <span className={`text-sm font-medium ${
+                      isSelected ? `text-${metodo.color}-700` : 'text-gray-600'
+                    }`}>
+                      {metodo.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Mensaje informativo cuando es solo efectivo */}
+        {soloEfectivo && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <FaMoneyBillWave className="text-green-600 text-xl" />
+              <span className="font-semibold text-green-800">Pago en Efectivo</span>
+            </div>
+            <p className="text-sm text-green-700">
+              Como administrador, puedes registrar el pago en efectivo recibido del cliente.
+            </p>
+          </div>
+        )}
 
         {/* Monto */}
         <div className="mb-6">

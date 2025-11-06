@@ -27,15 +27,14 @@ const PagoCheckout = () => {
   const { ordenId } = useParams();
   const navigate = useNavigate();
   
-  // Detectar si el usuario es cliente
-  const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+  // Detectar el rol del usuario
+  const rawRole = (localStorage.getItem('userRole') || '').toLowerCase();
+  const userRole = rawRole === 'administrador' ? 'admin' : rawRole;
   const isCliente = userRole === 'cliente';
+  const isAdmin = userRole === 'admin' || rawRole === 'administrador' || rawRole === 'empleado';
   
-  // DESHABILITADO: Ya no diferenciamos entre producción y local
-  // Siempre se va directo a pago con tarjeta
-  const isProduction = false; // Desactivado para no mostrar mensajes de modo prueba
-  
-  const [tipoPago, setTipoPago] = useState('stripe'); // Siempre directo a Stripe
+  // CAMBIO: Administradores solo pueden pagar en efectivo, clientes solo con tarjeta
+  const [tipoPago, setTipoPago] = useState(isAdmin ? 'manual' : 'stripe');
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingOrden, setLoadingOrden] = useState(true);
@@ -105,11 +104,12 @@ const PagoCheckout = () => {
   }, [ordenId]);
 
   // Crear Payment Intent cuando se selecciona pago con tarjeta y la orden está cargada
+  // Solo para clientes (no administradores)
   useEffect(() => {
-    if (tipoPago === 'stripe' && !clientSecret && !pagoCompletado && ordenInfo && !loadingOrden) {
+    if (tipoPago === 'stripe' && !clientSecret && !pagoCompletado && ordenInfo && !loadingOrden && !isAdmin) {
       handleCreatePaymentIntent();
     }
-  }, [tipoPago, ordenInfo, loadingOrden]);
+  }, [tipoPago, ordenInfo, loadingOrden, isAdmin]);
 
   const handleCreatePaymentIntent = async () => {
     setLoading(true);
@@ -249,6 +249,11 @@ const PagoCheckout = () => {
             <p className="text-gray-600">
               Tu pago ha sido registrado correctamente.
             </p>
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 font-semibold">
+                ✅ El estado de pago de la orden ha sido actualizado a "Pagado"
+              </p>
+            </div>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
@@ -262,12 +267,18 @@ const PagoCheckout = () => {
             </div>
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Método:</span>
-              <span className="font-semibold capitalize">{pagoInfo?.metodo_pago_display || 'Stripe'}</span>
+              <span className="font-semibold capitalize">{pagoInfo?.metodo_pago_display || (isAdmin ? 'Efectivo' : 'Stripe')}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Estado:</span>
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-600">Estado Pago:</span>
               <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-semibold">
                 {pagoInfo?.estado_display || 'Completado'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Estado Orden:</span>
+              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-semibold">
+                ✓ Pagado
               </span>
             </div>
           </div>
@@ -309,57 +320,49 @@ const PagoCheckout = () => {
           </div>
         </div>
 
-        {/* Banner de modo prueba - ELIMINADO */}
-        
-        {/* Selector de tipo de pago - ELIMINADO - Siempre va directo a Stripe */}
-        {false && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Selecciona el método de pago</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={() => setTipoPago('stripe')}
-                className={`p-6 rounded-lg border-2 transition-all ${
-                  tipoPago === 'stripe'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <FaCreditCard className={`mx-auto mb-3 text-4xl ${
-                  tipoPago === 'stripe' ? 'text-blue-600' : 'text-gray-400'
-                }`} />
-                <h4 className={`font-semibold mb-2 ${
-                  tipoPago === 'stripe' ? 'text-blue-700' : 'text-gray-700'
-                }`}>
-                  Pago con Tarjeta
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Paga de forma segura con tu tarjeta de crédito o débito
+        {/* Información del método de pago según el rol */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Método de pago disponible</h3>
+          
+          {isAdmin ? (
+            // ADMINISTRADOR: Solo efectivo
+            <div className="p-6 rounded-lg border-2 border-green-500 bg-green-50">
+              <FaMoneyBillWave className="mx-auto mb-3 text-4xl text-green-600" />
+              <h4 className="font-semibold mb-2 text-green-700 text-center">
+                Pago en Efectivo
+              </h4>
+              <p className="text-sm text-gray-600 text-center">
+                Como administrador, puedes registrar pagos en efectivo
+              </p>
+              <div className="mt-4 p-3 bg-white rounded border border-green-200">
+                <p className="text-xs text-green-800 font-semibold mb-1">
+                  ℹ️ Información:
                 </p>
-              </button>
-
-              <button
-                onClick={() => setTipoPago('manual')}
-                className={`p-6 rounded-lg border-2 transition-all ${
-                  tipoPago === 'manual'
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <FaMoneyBillWave className={`mx-auto mb-3 text-4xl ${
-                  tipoPago === 'manual' ? 'text-green-600' : 'text-gray-400'
-                }`} />
-                <h4 className={`font-semibold mb-2 ${
-                  tipoPago === 'manual' ? 'text-green-700' : 'text-gray-700'
-                }`}>
-                  Pago Manual
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Registra pagos en efectivo, transferencia o tarjeta física
+                <p className="text-xs text-green-700">
+                  El pago en efectivo se registrará directamente en el sistema sin procesamiento por tarjeta.
                 </p>
-              </button>
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            // CLIENTE: Solo tarjeta (Stripe)
+            <div className="p-6 rounded-lg border-2 border-blue-500 bg-blue-50">
+              <FaCreditCard className="mx-auto mb-3 text-4xl text-blue-600" />
+              <h4 className="font-semibold mb-2 text-blue-700 text-center">
+                Pago con Tarjeta
+              </h4>
+              <p className="text-sm text-gray-600 text-center">
+                Paga de forma segura con tu tarjeta de crédito o débito
+              </p>
+              <div className="mt-4 p-3 bg-white rounded border border-blue-200">
+                <p className="text-xs text-blue-800 font-semibold mb-2">
+                  🧪 Tarjeta de Prueba:
+                </p>
+                <p className="font-mono text-sm text-blue-900">4242 4242 4242 4242</p>
+                <p className="text-xs text-blue-700 mt-1">CVV: 123 | Fecha: 12/25</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Mensaje de error general */}
         {error && (
@@ -372,8 +375,21 @@ const PagoCheckout = () => {
           </div>
         )}
 
-        {/* Formulario de pago según el tipo seleccionado */}
-        {tipoPago === 'stripe' && ordenInfo && (
+        {/* Formulario de pago según el rol del usuario */}
+        
+        {/* ADMINISTRADOR: Formulario de pago en efectivo */}
+        {isAdmin && tipoPago === 'manual' && ordenInfo && (
+          <PagoManualForm
+            ordenTrabajoId={ordenId}
+            montoTotal={ordenInfo.monto_total}
+            onSuccess={handleManualSuccess}
+            onCancel={handleVolverOrdenes}
+            soloEfectivo={true}
+          />
+        )}
+
+        {/* CLIENTE: Formulario de pago con Stripe */}
+        {!isAdmin && tipoPago === 'stripe' && ordenInfo && (
           <>
             {/* Mostrar advertencia si Stripe no está inicializado */}
             {!STRIPE_KEY && (
@@ -398,16 +414,6 @@ const PagoCheckout = () => {
               />
             </Elements>
           </>
-        )}
-
-        {/* Pago manual DESHABILITADO - Ya no se usa */}
-        {false && tipoPago === 'manual' && ordenInfo && (
-          <PagoManualForm
-            ordenTrabajoId={ordenId}
-            montoTotal={ordenInfo.monto_total}
-            onSuccess={handleManualSuccess}
-            onCancel={handleVolverOrdenes}
-          />
         )}
       </div>
     </div>
