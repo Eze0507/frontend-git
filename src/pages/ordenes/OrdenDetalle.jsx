@@ -715,8 +715,8 @@ const OrdenDetalle = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            {/* Botón de pago - Para admin/empleado siempre, para clientes solo cuando esté finalizada o entregada */}
-            {(!isCliente || (isCliente && (orden.estado === 'finalizada' || orden.estado === 'entregada'))) && (
+            {/* Botón de pago - Solo mostrar si NO está pagada y cumple condiciones de rol */}
+            {!orden.pago && (!isCliente || (isCliente && (orden.estado === 'finalizada' || orden.estado === 'entregada'))) && (
               <BotonPagarOrden 
                 ordenId={orden.id} 
                 montoTotal={orden.monto_total}

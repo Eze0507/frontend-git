@@ -149,7 +149,7 @@ const AppRouter = () => {
           {/* Rutas para el módulo de Pagos */}
           <Route path="/pagos" element={(role === 'admin') ? <PagosList /> : <Navigate to="/admin/home" replace />} />
           <Route path="/pagos/:pagoId" element={(role === 'admin') ? <PagoDetalle /> : <Navigate to="/admin/home" replace />} />
-          <Route path="/pagos/checkout/:ordenId" element={(role === 'admin') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/pagos/checkout/:ordenId" element={(role === 'admin' || role === 'cliente') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para factura de proveedor */}
           <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
