@@ -21,23 +21,40 @@ const FacturaProveedorList = ({ facturas, onEdit, onDelete, onAddNew, onViewDeta
     });
   }, [searchTerm, facturas]);
 
-  const columns = ["numero", "proveedor", "fecha_registro", "subtotal", "descuento", "impuesto", "total"];
+  const columns = ["numero", "proveedor", "fecha_registro", "observacion", "subtotal", "descuento", "impuesto", "total"];
   
   const tableData = filtered.map((f) => {
     console.log('📊 Procesando factura:', f);
+    
+    const subtotal = parseFloat(f?.subtotal || 0);
+    const descuentoMonto = parseFloat(f?.descuento || 0);
+    const descuentoPorcentaje = parseFloat(f?.descuento_porcentaje || 0);
+    const impuestoMonto = parseFloat(f?.impuesto || 0);
+    const impuestoPorcentaje = parseFloat(f?.impuesto_porcentaje || 0);
+    const total = parseFloat(f?.total || 0);
+    
     return {
       id: f?.id || '',
       numero: f?.numero || "",
       fecha_registro: f?.fecha_registro || "",
       observacion: f?.observacion || "",
-      descuento: parseFloat(f?.descuento || 0).toFixed(2),
-      impuesto: parseFloat(f?.impuesto || 0).toFixed(2),
-      subtotal: parseFloat(f?.subtotal || 0).toFixed(2),
-      total: parseFloat(f?.total || 0).toFixed(2),
+      // Mostrar descuento con porcentaje entre paréntesis si existe
+      descuento: descuentoPorcentaje > 0 
+        ? `${descuentoMonto.toFixed(2)} (${descuentoPorcentaje}%)`
+        : descuentoMonto.toFixed(2),
+      // Mostrar impuesto con porcentaje entre paréntesis si existe
+      impuesto: impuestoPorcentaje > 0
+        ? `${impuestoMonto.toFixed(2)} (${impuestoPorcentaje}%)`
+        : impuestoMonto.toFixed(2),
+      subtotal: subtotal.toFixed(2),
+      total: total.toFixed(2),
       proveedor: f?.proveedor_nombre || "Sin proveedor",
       proveedor_id: f?.proveedor || null,
       proveedor_nombre: f?.proveedor_nombre || "",
       proveedor_nit: f?.proveedor_nit || "",
+      // Pasar también los valores originales para edición
+      descuento_porcentaje: f?.descuento_porcentaje || 0,
+      impuesto_porcentaje: f?.impuesto_porcentaje || 0,
     };
   });
 

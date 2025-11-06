@@ -380,6 +380,27 @@ export async function getResumenFactura(facturaId) {
   }
 }
 
+/**
+ * Recalcular una factura basándose en sus detalles
+ */
+export async function recalcularFactura(facturaId) {
+  try {
+    console.log(`🔄 Recalculando factura ${facturaId}...`);
+    
+    const response = await apiClient.post(`/facturas-proveedor/${facturaId}/recalcular/`);
+    console.log('✅ Factura recalculada exitosamente:', response.data);
+    return response.data.factura;
+  } catch (error) {
+    console.error(`❌ Error al recalcular factura ${facturaId}:`, error);
+    
+    if (error.response) {
+      console.error('📊 Detalles del error:', error.response.data);
+      throw new Error(JSON.stringify(error.response.data));
+    }
+    throw new Error('Error de conexión al recalcular la factura.');
+  }
+}
+
 export default {
   // Facturas
   getAllFacturasProveedor,
@@ -391,6 +412,7 @@ export default {
   getFacturasByProveedor,
   buscarFacturasProveedor,
   getDetallesFactura,
+  recalcularFactura,
   
   // Detalles de Factura
   getAllDetallesFactura,
