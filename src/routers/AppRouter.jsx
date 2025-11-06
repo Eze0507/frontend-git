@@ -29,6 +29,7 @@ import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pag
 import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; // <-- RECONOCIMIENTO DE PLACAS
 import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo de Proveedores
 import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.jsx"; // <-- Módulo de Facturas Proveedor
+import ReportesPage from "@/pages/reportes/ReportesPage.jsx"; // <-- Módulo de Reportes
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -132,6 +133,8 @@ const AppRouter = () => {
           <Route path="/pagos/checkout/:ordenId" element={(role === 'admin') ? <PagoCheckout /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para factura de proveedor */}
           <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
+          {/* Ruta para reportes */}
+          <Route path="/admin/finanzas/reportes" element={(role === 'admin') ? <ReportesPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
           <Route path="/admin/reconocimiento" element={(role === 'admin' || role === 'empleado') ? <ReconocimientoPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para proveedores */}
