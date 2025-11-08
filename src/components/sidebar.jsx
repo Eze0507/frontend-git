@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaChevronDown,
@@ -153,7 +153,11 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
   const normalizedRole = (userRole || '').toLowerCase();
   const mappedRole = normalizedRole === 'administrador' ? 'admin' : normalizedRole;
   const allowedKeys = allowedByRole[mappedRole] || [];
-  const filteredMenuItems = menuItems.filter(mi => allowedKeys.includes(mi.key));
+  
+  // Memorizar filteredMenuItems para evitar bucles infinitos
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(mi => allowedKeys.includes(mi.key));
+  }, [userRole]);
 
   // 🔍 Lógica de búsqueda
   useEffect(() => {

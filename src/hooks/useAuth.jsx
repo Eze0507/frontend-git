@@ -56,22 +56,31 @@ export function useAuth() {
       const userData = parseJwt(access);
       console.log("Datos decodificados del token:", userData);
 
+      // Función auxiliar para mapear roles
+      const mapRole = (role) => {
+        const normalized = (role || '').toString().toLowerCase();
+        return normalized === 'administrador' ? 'admin' : normalized;
+      };
+
       // Intentar obtener rol desde el token (si existiera)
       if (userData && userData.role) {
-        localStorage.setItem("userRole", userData.role);
+        const mappedRole = mapRole(userData.role);
+        localStorage.setItem("userRole", mappedRole);
+        console.log(`✅ Rol '${userData.role}' mapeado a '${mappedRole}'`);
       } else if (userData && userData.groups && userData.groups.length > 0) {
-        localStorage.setItem("userRole", userData.groups[0]);
+        const mappedRole = mapRole(userData.groups[0]);
+        localStorage.setItem("userRole", mappedRole);
+        console.log(`✅ Rol '${userData.groups[0]}' mapeado a '${mappedRole}'`);
       } else {
         // Si el token no trae rol, consultar al backend existente /auth/me/ (sin cambiar backend)
         try {
           const me = await axios.get(`${apiUrl}auth/me/`, {
             headers: { Authorization: `Bearer ${access}` },
           });
-          const serverRole = (me?.data?.role || '').toString().toLowerCase();
-          // Mapear nombres de grupos a claves de front
-          const mapped = serverRole === 'administrador' ? 'admin' : serverRole;
-          if (mapped) {
-            localStorage.setItem("userRole", mapped);
+          const mappedRole = mapRole(me?.data?.role);
+          if (mappedRole) {
+            localStorage.setItem("userRole", mappedRole);
+            console.log(`✅ Rol '${me?.data?.role}' mapeado a '${mappedRole}'`);
           }
         } catch (e) {
           console.warn('No se pudo obtener rol desde /auth/me/', e?.message || e);

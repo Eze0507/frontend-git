@@ -16,13 +16,13 @@ const HomePage = () => {
   // Obtener el nombre del usuario del localStorage
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
-    const storedRole = (localStorage.getItem('userRole') || '').toLowerCase();
-    if (storedUsername) {
-      setUsername(storedUsername);
-    }
-    if (storedRole) {
-      setUserRole(storedRole === 'administrador' ? 'admin' : storedRole);
-    }
+    const storedRole = localStorage.getItem('userRole') || 'invitado';
+    
+    setUsername(storedUsername || 'Usuario');
+    setUserRole(storedRole);
+    
+    console.log('🔵 [HomePage] Username:', storedUsername);
+    console.log('🔵 [HomePage] Role:', storedRole);
   }, []);
 
   const handleLogout = async () => {
@@ -51,23 +51,13 @@ const HomePage = () => {
               <h1 className="text-xl font-bold text-gray-800">AutoFix</h1>
             </div>
             <div className="flex items-center space-x-4">
-              {userRole !== 'cliente' && (
-                <Link 
-                  to="/admin/dashboard"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/admin/dashboard');
-                    // Fallback duro por si el Router no navega por estado estancado
-                    setTimeout(() => {
-                      if (window.location.pathname !== '/admin/dashboard') {
-                        window.location.href = '/admin/dashboard';
-                      }
-                    }, 50);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              {(userRole === 'admin' || userRole === 'empleado') && (
+                <button
+                  onClick={() => navigate('/admin/dashboard')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
                 >
                   Panel Administrativo
-                </Link>
+                </button>
               )}
               
               {/* User Dropdown */}
