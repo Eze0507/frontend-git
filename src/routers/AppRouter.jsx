@@ -7,6 +7,7 @@ import CargoPage from "@/pages/cargo/cargoPage.jsx"; // <-- CORREGIDO
 import HomePage from "@/pages/home/HomePage.jsx"; // <-- CORREGIDO
 import LoginPage from "@/pages/login/loginPage.jsx"; // <-- CORREGIDO
 import RegisterPage from "@/pages/register/RegisterPage.jsx"; // <-- CORREGIDO
+import TallerRegisterPage from "@/pages/register/TallerRegisterPage.jsx"; // <-- Registro de Taller
 import EmpleadoPage from "@/pages/empleados/EmpleadoPage.jsx"; // <-- CORREGIDO
 import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
 import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
@@ -32,6 +33,7 @@ import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; 
 import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo de Proveedores
 import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.jsx"; // <-- Módulo de Facturas Proveedor
 import ReportesPage from "@/pages/reportes/ReportesPage.jsx"; // <-- Módulo de Reportes
+import TallerPage from "@/pages/taller/TallerPage.jsx"; // <-- Mi Taller
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -56,12 +58,17 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta por defecto */}
+        {/* Ruta por defecto - HomePage pública */}
         <Route
           path="/"
-          element={<Navigate to="/login" />}
+          element={
+            isAuthenticated 
+              ? <Navigate to="/admin/home" replace />
+              : <HomePage />
+          }
         />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register-taller" element={<TallerRegisterPage />} />
 
         {/* Ruta de login - redirige si ya está autenticado */}
         <Route 
@@ -73,10 +80,10 @@ const AppRouter = () => {
           } 
         />
         
-        {/* Página Home independiente (sin sidebar) */}
+        {/* Página Home del usuario autenticado (sin sidebar) */}
         <Route 
           path="/admin/home" 
-          element={isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />} 
+          element={isAuthenticated ? <HomePage /> : <Navigate to="/" replace />} 
         />
         
         {/* Mis Órdenes: solo clientes - Vista de solo lectura (sin sidebar) */}
@@ -119,6 +126,8 @@ const AppRouter = () => {
         <Route element={<AdminRoutes />}>
           {/* Dashboard: admin y empleado */}
           <Route path="/admin/dashboard" element={(role === 'admin' || role === 'empleado') ? <Dashboard /> : <Navigate to="/admin/home" replace />} />
+          {/* Mi Taller: solo admin */}
+          <Route path="/admin/mi-taller" element={(role === 'admin') ? <TallerPage /> : <Navigate to="/admin/home" replace />} />
           {/* Administración: solo admin */}
           <Route path="/admin/usuarios" element={(role === 'admin') ? <UserPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/cargos" element={(role === 'admin') ? <CargoPage /> : <Navigate to="/admin/home" replace />} />

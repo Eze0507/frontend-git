@@ -105,9 +105,9 @@ export function useAuth() {
       const apiUrl = import.meta.env.VITE_API_URL;
       
       if (refresh && access) {
-        // Llamar al endpoint de logout del backend para invalidar el refresh token
+        // Llamar al endpoint de logout del backend para invalidar el refresh token (blacklist)
         const response = await axios.post(`${apiUrl}logout/`, {
-          refresh
+          refresh_token: refresh  // El backend espera 'refresh_token' según el serializer
         }, {
           headers: {
             "Authorization": `Bearer ${access}`,
@@ -115,8 +115,10 @@ export function useAuth() {
         });
 
         if (response.status === 200) {
-          console.log("✅ Logout exitoso:", response.data.message);
+          console.log("✅ Logout exitoso - Token agregado a blacklist:", response.data.message);
         }
+      } else {
+        console.warn("⚠️ No se encontraron tokens para enviar al backend");
       }
     } catch (error) {
       // Si falla la llamada al backend, continuar con el logout local
@@ -131,8 +133,8 @@ export function useAuth() {
       console.log("🧹 Tokens eliminados del localStorage");
       setLoading(false);
       
-      // Forzar recarga completa a la página de login
-      window.location.href = "/login";
+      // Redirigir a la página principal (HomePage pública)
+      window.location.href = "/";
     }
   };
 

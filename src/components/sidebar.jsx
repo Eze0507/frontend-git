@@ -47,12 +47,13 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
 
   const handleLogout = async () => {
     try {
-      console.log("🚪 Iniciando logout...");
+      console.log("🚪 Iniciando logout desde Sidebar...");
       await logout({ navigate });
+      // El hook useAuth ya redirige a "/" con window.location.href
     } catch (error) {
       console.error("❌ Error durante el logout:", error);
-      // Fallback: forzar redirección al login incluso si hay error
-      window.location.href = "/login";
+      // Fallback: forzar redirección a la página principal incluso si hay error
+      window.location.href = "/";
     }
   };
 
@@ -83,6 +84,12 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       icon: <FaHome className="mr-2" />,
       key: "dashboard",
       path: "/admin/dashboard",
+    },
+    {
+      title: "Mi Taller",
+      icon: <FaWrench className="mr-2" />,
+      key: "mi-taller",
+      path: "/admin/mi-taller",
     },
     {
       title: "Administración",
@@ -145,7 +152,7 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
 
   // Filtrado por rol (sin cambiar estructura ni flujo)
   const allowedByRole = {
-    admin: ["dashboard", "administracion", "clientes", "operaciones", "finanzas"],
+    admin: ["dashboard", "mi-taller", "administracion", "clientes", "operaciones", "finanzas"],
     empleado: ["dashboard", "clientes", "operaciones"],
     cliente: [],
   };
