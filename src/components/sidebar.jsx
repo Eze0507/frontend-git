@@ -15,18 +15,19 @@ import {
   FaCar,
   FaUser,
   FaBars,
-  FaSearch,
-  FaTimes,
 } from "react-icons/fa";
 import UserProfile from './UserProfile.jsx';
 import { useAuth } from '../hooks/useAuth.jsx';
 
-const Sidebar = ({ isVisible = true, onToggle }) => {
-  const [openMenu, setOpenMenu] = useState(null);
-  const [openSubMenu, setOpenSubMenu] = useState(null);
+const Sidebar = ({ isVisible = true, onToggle, onMenuItemsReady }) => {
+  // Cargar el estado de menús abiertos desde localStorage
+  const [openMenu, setOpenMenu] = useState(() => {
+    return localStorage.getItem('sidebar_open_menu') || null;
+  });
+  const [openSubMenu, setOpenSubMenu] = useState(() => {
+    return localStorage.getItem('sidebar_open_submenu') || null;
+  });
   const [showProfile, setShowProfile] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();
   const location = useLocation(); // Hook para detectar cambios de ruta
   const [username, setUsername] = useState(localStorage.getItem("username") || "Usuario");
@@ -37,12 +38,27 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
 
 
   const toggleMenu = (menu) => {
-    setOpenMenu(openMenu === menu ? null : menu);
+    const newOpenMenu = openMenu === menu ? null : menu;
+    setOpenMenu(newOpenMenu);
     setOpenSubMenu(null); // Cierra submenús al abrir otro menú principal
+    // Guardar en localStorage
+    if (newOpenMenu) {
+      localStorage.setItem('sidebar_open_menu', newOpenMenu);
+    } else {
+      localStorage.removeItem('sidebar_open_menu');
+    }
+    localStorage.removeItem('sidebar_open_submenu');
   };
 
   const toggleSubMenu = (subKey) => {
-    setOpenSubMenu(openSubMenu === subKey ? null : subKey);
+    const newOpenSubMenu = openSubMenu === subKey ? null : subKey;
+    setOpenSubMenu(newOpenSubMenu);
+    // Guardar en localStorage
+    if (newOpenSubMenu) {
+      localStorage.setItem('sidebar_open_submenu', newOpenSubMenu);
+    } else {
+      localStorage.removeItem('sidebar_open_submenu');
+    }
   };
 
   const handleLogout = async () => {
@@ -112,8 +128,6 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
       subItems: [
         { name: "Cliente", path: "/admin/clientes" },
         { name: "Cita", path: "/admin/clientes/citas" },
-        { name: "Asistente Virtual", path: "/admin/clientes/asistente" },
-        { name: "Historial", path: "/admin/clientes/historial" },
       ],
     },
     {
@@ -166,152 +180,64 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
     return menuItems.filter(mi => allowedKeys.includes(mi.key));
   }, [userRole]);
 
-  // 🔍 Lógica de búsqueda
+  // Notificar al Layout cuando los menuItems estén listos
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
+    if (onMenuItemsReady && filteredMenuItems.length > 0) {
+      onMenuItemsReady(filteredMenuItems);
     }
+  }, [filteredMenuItems, onMenuItemsReady]);
 
-    const query = searchQuery.toLowerCase();
-    const results = [];
-
-    filteredMenuItems.forEach((menu) => {
-      // Buscar en menú principal (solo si tiene path directo)
-      if (menu.path && menu.title.toLowerCase().includes(query)) {
-        results.push({
-          title: menu.title,
-          path: menu.path,
-          icon: menu.icon,
-        });
-      }
-
-      // Buscar en submenús
+  // Auto-abrir el menú correcto basado en la ruta actual
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    // Buscar qué menú principal contiene la ruta actual
+    for (const menu of menuItems) {
       if (menu.subItems) {
-        menu.subItems.forEach((sub) => {
-          // Solo agregar si tiene path (no es contenedor)
-          if (sub.path && sub.name.toLowerCase().includes(query)) {
-            results.push({
-              title: sub.name,
-              path: sub.path,
-              icon: menu.icon,
-              parent: menu.title,
-            });
+        // Buscar en subItems
+        for (const subItem of menu.subItems) {
+          if (subItem.path === currentPath) {
+            setOpenMenu(menu.key);
+            localStorage.setItem('sidebar_open_menu', menu.key);
+            return;
           }
-
-          // Buscar en sub-submenús
-          if (sub.subItems) {
-            sub.subItems.forEach((ssub) => {
-              if (ssub.path && ssub.name.toLowerCase().includes(query)) {
-                results.push({
-                  title: ssub.name,
-                  path: ssub.path,
-                  icon: menu.icon,
-                  parent: `${menu.title} > ${sub.name}`,
-                });
+          // Buscar en sub-subItems (como inventario)
+          if (subItem.subItems) {
+            for (const subSubItem of subItem.subItems) {
+              if (subSubItem.path === currentPath) {
+                setOpenMenu(menu.key);
+                setOpenSubMenu(subItem.key);
+                localStorage.setItem('sidebar_open_menu', menu.key);
+                localStorage.setItem('sidebar_open_submenu', subItem.key);
+                return;
               }
-            });
+            }
           }
-        });
+        }
       }
-    });
-
-    setSearchResults(results);
-  }, [searchQuery, filteredMenuItems]);
+    }
+  }, [location.pathname]);
 
   return (
     <>
-      {/* Botón toggle cuando el sidebar está oculto */}
-      {!isVisible && (
-        <button
-          onClick={onToggle}
-          className="fixed top-4 left-4 z-50 bg-gray-800 text-white p-3 rounded-md shadow-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-105"
-        >
-          <FaBars className="text-lg" />
-        </button>
-      )}
-      
-      <aside className={`bg-gray-800 text-white w-64 flex flex-col absolute top-0 left-0 h-full z-50 sidebar-transition ${
+      <aside className={`bg-gray-800 text-white w-64 flex flex-col absolute top-0 left-0 h-full z-30 sidebar-transition ${
         isVisible ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="p-4 text-center border-b border-gray-700 shadow-md">
-          {/* Botón toggle cuando el sidebar está visible */}
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex-1"></div>
-            <button
-              onClick={onToggle}
-              className="text-gray-400 hover:text-white transition-colors duration-200 p-1"
-            >
-              <FaBars className="text-lg" />
-            </button>
+        {/* Sección de Usuario */}
+        <div className="p-4 pt-6">
+          <div className="flex flex-col items-center justify-center">
+            <FaUserCircle className="text-4xl text-gray-400 mb-2" />
+            <span className="text-sm font-semibold text-white truncate text-center w-full">
+              {username}
+            </span>
+            <span className="text-xs text-gray-400 capitalize truncate text-center">
+              {userRole}
+            </span>
           </div>
-          
-          <Link to="/admin/home" className="block hover:opacity-80 transition-opacity duration-200">
-          <div className="flex items-center justify-center mb-2">
-            <div className="relative">
-              <FaCar className="text-3xl text-blue-400 mr-1" />
-              <FaWrench className="absolute -bottom-1 -right-1 text-lg text-yellow-400" />
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-white">AutoFix</h2>
-          <p className="text-xs text-gray-400 mt-1">Sistema de Gestión Automotriz</p>
-        </Link>
-      </div>
-
-      {/* 🔍 Buscador */}
-      <div className="px-4 py-3 border-b border-gray-700">
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input
-            type="text"
-            placeholder="Buscar funcionalidad..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 bg-gray-900 text-white text-sm rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-500"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white p-1"
-            >
-              <FaTimes className="text-sm" />
-            </button>
-          )}
         </div>
 
-        {/* Resultados */}
-        {searchQuery && searchResults.length > 0 && (
-          <div className="mt-2 bg-gray-900 rounded-md max-h-64 overflow-y-auto">
-            {searchResults.map((result, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setSearchQuery("");
-                  window.location.href = result.path;
-                }}
-                className="w-full flex items-start gap-2 px-3 py-2 hover:bg-gray-700 rounded transition-colors text-left"
-              >
-                <span className="text-gray-400 mt-0.5">{result.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white">{result.title}</p>
-                  {result.parent && (
-                    <p className="text-xs text-gray-400">{result.parent}</p>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {searchQuery && searchResults.length === 0 && (
-          <div className="mt-2 p-3 text-center text-sm text-gray-400">
-            No se encontraron resultados
-          </div>
-        )}
-      </div>
-
       {/* Menú Desplazable */}
-      <nav className="flex-1 overflow-y-auto p-4 sidebar-scrollbar">
+      <nav className="flex-1 overflow-y-auto p-4 pt-2 sidebar-scrollbar">
         <ul className="space-y-2">
           {filteredMenuItems.map((menu) => (
             <li key={menu.key}>
@@ -396,20 +322,8 @@ const Sidebar = ({ isVisible = true, onToggle }) => {
         </ul>
       </nav>
 
-      {/* Sección de Usuario y Logout */}
-      <div className="p-4 border-t border-gray-700">
-        <div className="flex items-center mb-4">
-          <FaUserCircle className="text-2xl text-gray-400 mr-3" />
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-white truncate">
-              {username}
-            </span>
-            <span className="text-xs text-gray-400 capitalize">
-              {userRole}
-            </span>
-          </div>
-        </div>
-
+      {/* Botones de Acción */}
+      <div className="p-4 pt-2">
         <div className="space-y-2">
           <button
             onClick={handleShowProfile}

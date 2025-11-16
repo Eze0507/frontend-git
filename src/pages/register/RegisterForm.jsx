@@ -6,24 +6,94 @@ const RegisterForm = ({
   username,
   email,
   password,
-  password2,
+  nombre,
+  apellido,
+  nit,
+  codigoInvitacion,
   setUsername,
   setEmail,
   setPassword,
-  setPassword2,
+  setNombre,
+  setApellido,
+  setNit,
+  setCodigoInvitacion,
   onSubmit,
   loading,
   error,
 }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center w-full bg-gray-50">
-      <div className="bg-white shadow-md rounded-lg px-8 py-6 max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">Crear Cuenta</h1>
+    <div className="min-h-screen flex items-center justify-center w-full bg-gray-50 py-8">
+      <div className="bg-white shadow-md rounded-lg px-8 py-6 max-w-md w-full">
+        <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">Registrar Cliente</h1>
+        <p className="text-sm text-gray-600 text-center mb-6">Complete el formulario para crear su cuenta de cliente</p>
         
         <form onSubmit={onSubmit}>
           <div className="mb-4">
+            <label htmlFor="codigoInvitacion" className="block text-sm font-medium text-gray-700 mb-2">
+              Código de Invitación *
+            </label>
+            <input
+              type="text"
+              id="codigoInvitacion"
+              value={codigoInvitacion}
+              onChange={(e) => setCodigoInvitacion(e.target.value)}
+              className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
+              focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Código proporcionado por el taller"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
+              Nombre *
+            </label>
+            <input
+              type="text"
+              id="nombre"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
+              focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Ingresa tu nombre"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 mb-2">
+              Apellido
+            </label>
+            <input
+              type="text"
+              id="apellido"
+              value={apellido}
+              onChange={(e) => setApellido(e.target.value)}
+              className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
+              focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Ingresa tu apellido"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="nit" className="block text-sm font-medium text-gray-700 mb-2">
+              NIT / CI *
+            </label>
+            <input
+              type="text"
+              id="nit"
+              value={nit}
+              onChange={(e) => setNit(e.target.value)}
+              className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
+              focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Número de identificación"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Usuario
+              Usuario *
             </label>
             <input
               type="text"
@@ -32,7 +102,7 @@ const RegisterForm = ({
               onChange={(e) => setUsername(e.target.value)}
               className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
               focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Ingresa tu nombre de usuario"
+              placeholder="Nombre de usuario para iniciar sesión"
               required
             />
           </div>
@@ -48,14 +118,13 @@ const RegisterForm = ({
               onChange={(e) => setEmail(e.target.value)}
               className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
               focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Ingresa tu email"
-              required
+              placeholder="correo@ejemplo.com (opcional)"
             />
           </div>
 
           <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Contraseña
+              Contraseña *
             </label>
             <input
               type="password"
@@ -64,23 +133,7 @@ const RegisterForm = ({
               onChange={(e) => setPassword(e.target.value)}
               className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
               focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Ingresa tu contraseña"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="password2" className="block text-sm font-medium text-gray-700 mb-2">
-              Repetir contraseña
-            </label>
-            <input
-              type="password"
-              id="password2"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-              className="shadow-sm rounded-md w-full px-3 py-2 border border-gray-300 
-              focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Repite tu contraseña"
+              placeholder="Mínimo 6 caracteres"
               required
             />
           </div>

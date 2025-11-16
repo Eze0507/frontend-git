@@ -9,12 +9,23 @@ const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [nit, setNit] = useState("");
+  const [codigoInvitacion, setCodigoInvitacion] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await register({ username, email, password, password2 });
+    const success = await register({ 
+      username, 
+      email, 
+      password, 
+      nombre, 
+      apellido, 
+      nit, 
+      codigo_invitacion: codigoInvitacion 
+    });
     if (success) {
       navigate("/login");
     }
@@ -25,11 +36,17 @@ const RegisterPage = () => {
       username={username}
       email={email}
       password={password}
-      password2={password2}
+      nombre={nombre}
+      apellido={apellido}
+      nit={nit}
+      codigoInvitacion={codigoInvitacion}
       setUsername={setUsername}
       setEmail={setEmail}
       setPassword={setPassword}
-      setPassword2={setPassword2}
+      setNombre={setNombre}
+      setApellido={setApellido}
+      setNit={setNit}
+      setCodigoInvitacion={setCodigoInvitacion}
       onSubmit={handleSubmit}
       loading={loading}
       error={error}

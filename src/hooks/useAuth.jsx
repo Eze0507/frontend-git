@@ -99,32 +99,46 @@ export function useAuth() {
 
   const logout = async ({ navigate } = {}) => {
     setLoading(true);
+    
+    // PRIMERO: Guardar los tokens ANTES de borrar localStorage
+    const refresh = localStorage.getItem("refresh");
+    const access = localStorage.getItem("access");
+    const apiUrl = import.meta.env.VITE_API_URL;
+    
     try {
-      const refresh = localStorage.getItem("refresh");
-      const access = localStorage.getItem("access");
-      const apiUrl = import.meta.env.VITE_API_URL;
-      
       if (refresh && access) {
+        console.log("🔐 Enviando logout al backend...");
+        console.log("🔑 Refresh token:", refresh.substring(0, 20) + "...");
+        console.log("🔑 Access token:", access.substring(0, 20) + "...");
+        
         // Llamar al endpoint de logout del backend para invalidar el refresh token (blacklist)
+        // Probar con 'refresh' en lugar de 'refresh_token'
         const response = await axios.post(`${apiUrl}logout/`, {
-          refresh_token: refresh  // El backend espera 'refresh_token' según el serializer
+          refresh: refresh  // Intentar con 'refresh' directamente
         }, {
           headers: {
             "Authorization": `Bearer ${access}`,
+            "Content-Type": "application/json",
           }
         });
 
-        if (response.status === 200) {
-          console.log("✅ Logout exitoso - Token agregado a blacklist:", response.data.message);
+        if (response.status === 200 || response.status === 205) {
+          console.log("✅ Logout exitoso - Token agregado a blacklist:", response.data);
         }
       } else {
         console.warn("⚠️ No se encontraron tokens para enviar al backend");
+        console.log("refresh:", refresh);
+        console.log("access:", access);
       }
     } catch (error) {
-      // Si falla la llamada al backend, continuar con el logout local
-      console.warn("❌ Error al comunicarse con el backend durante logout:", error);
+      // Si falla la llamada al backend, mostrar el error pero continuar con el logout local
+      console.error("❌ Error al comunicarse con el backend durante logout:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
     } finally {
-      // Siempre limpiar el localStorage sin importar si el backend respondió
+      // DESPUÉS: Limpiar el localStorage solo después de enviar la petición
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
       localStorage.removeItem("username");

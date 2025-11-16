@@ -145,7 +145,7 @@ const TallerDetalle = ({ taller, onEdit }) => {
             {taller.codigo_invitacion || 'N/A'}
           </code>
           <p className="text-sm text-gray-600 mt-2">
-            Comparte este código con tus empleados para que puedan registrarse en tu taller
+            Comparte este código con los clientes para que puedan registrarse en tu taller
           </p>
         </div>
       </div>

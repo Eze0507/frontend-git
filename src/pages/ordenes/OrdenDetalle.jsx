@@ -159,7 +159,11 @@ const OrdenDetalle = () => {
       
       setOrden(ordenData);
       setVehiculo(vehiculoMapeado);
-      setItemsCatalogo(itemsData);
+      // Filtrar solo items de tipo 'Item de venta' y 'Servicio' para las órdenes de trabajo
+      const itemsFiltrados = itemsData.filter(item => 
+        item.tipo === 'Item de venta' || item.tipo === 'Servicio'
+      );
+      setItemsCatalogo(itemsFiltrados);
       setMarcas(marcasData);
       setModelos(modelosData);
       setClientes(clientesData);

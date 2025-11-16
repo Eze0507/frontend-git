@@ -6,7 +6,7 @@ export function useRegister() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const register = async ({ username, email, password, password2 }) => {
+  const register = async ({ username, email, password, nombre, apellido, nit, codigo_invitacion }) => {
     setLoading(true);
     setError("");
 
@@ -15,13 +15,8 @@ export function useRegister() {
       const apiUrl = import.meta.env.VITE_API_URL;
 
       // Validación básica en el frontend
-      if (!username || !email || !password || !password2) {
-        setError("Todos los campos son obligatorios");
-        return false;
-      }
-
-      if (password !== password2) {
-        setError("Las contraseñas no coinciden");
+      if (!username || !password || !nombre || !nit || !codigo_invitacion) {
+        setError("Los campos usuario, contraseña, nombre, NIT y código de invitación son obligatorios");
         return false;
       }
 
@@ -32,12 +27,15 @@ export function useRegister() {
 
       // Enviar datos al backend
       const res = await axios.post(
-        `${apiUrl}register/`,
+        `${apiUrl}cliente-registro/`,
         {
           username: username.trim(),
-          email: email.trim(),
+          email: email?.trim() || '',
           password,
-          password2,
+          nombre: nombre.trim(),
+          apellido: apellido?.trim() || '',
+          nit: nit.trim(),
+          codigo_invitacion: codigo_invitacion.trim(),
         },
         {
           headers: {
@@ -65,6 +63,12 @@ export function useRegister() {
           setError(`Email: ${err.response.data.email[0]}`);
         } else if (err.response.data.password) {
           setError(`Contraseña: ${err.response.data.password[0]}`);
+        } else if (err.response.data.codigo_invitacion) {
+          setError(`Código de invitación: ${err.response.data.codigo_invitacion[0]}`);
+        } else if (err.response.data.nit) {
+          setError(`NIT: ${err.response.data.nit[0]}`);
+        } else if (err.response.data.nombre) {
+          setError(`Nombre: ${err.response.data.nombre[0]}`);
         } else {
           setError(JSON.stringify(err.response.data));
         }

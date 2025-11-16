@@ -4,6 +4,7 @@ import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTach
 import UserProfile from '@/components/UserProfile';
 import FloatingChatbot from '@/components/FloatingChatbot';
 import { useAuth } from '@/hooks/useAuth';
+import { obtenerPerfilTaller } from '@/api/tallerApi';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -13,8 +14,10 @@ const HomePage = () => {
   const [username, setUsername] = useState('Usuario');
   const [userRole, setUserRole] = useState('Invitado');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [nombreTaller, setNombreTaller] = useState('AutoFix');
+  const [logoTaller, setLogoTaller] = useState(null);
 
-  // Obtener el nombre del usuario del localStorage
+  // Obtener el nombre del usuario y datos del taller del localStorage
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
     const storedRole = localStorage.getItem('userRole') || 'invitado';
@@ -27,6 +30,35 @@ const HomePage = () => {
     console.log('🔵 [HomePage] Username:', storedUsername);
     console.log('🔵 [HomePage] Role:', storedRole);
     console.log('🔵 [HomePage] IsAuthenticated:', !!token);
+
+    // Si está autenticado, obtener datos del taller
+    if (token) {
+      const fetchTallerInfo = async () => {
+        try {
+          const tallerData = await obtenerPerfilTaller();
+          if (tallerData && tallerData.nombre_taller) {
+            setNombreTaller(tallerData.nombre_taller);
+            localStorage.setItem('nombre_taller', tallerData.nombre_taller);
+          }
+          if (tallerData && tallerData.logo) {
+            setLogoTaller(tallerData.logo);
+            localStorage.setItem('logo_taller', tallerData.logo);
+          }
+        } catch (error) {
+          // Si hay error, intentar obtener de localStorage
+          const savedName = localStorage.getItem('nombre_taller');
+          const savedLogo = localStorage.getItem('logo_taller');
+          if (savedName) setNombreTaller(savedName);
+          if (savedLogo) setLogoTaller(savedLogo);
+          console.log('No se pudo cargar el perfil del taller');
+        }
+      };
+      fetchTallerInfo();
+    } else {
+      // Si NO está autenticado, usar valores por defecto
+      setNombreTaller('AutoFix');
+      setLogoTaller(null);
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -48,11 +80,23 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="relative mr-3">
-                <FaCar className="text-2xl text-blue-500" />
-                <FaWrench className="absolute -bottom-1 -right-1 text-sm text-yellow-500" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-800">AutoFix</h1>
+              {logoTaller && isAuthenticated ? (
+                <img 
+                  src={logoTaller} 
+                  alt="Logo del taller" 
+                  className="h-10 w-10 object-contain rounded mr-3"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    setLogoTaller(null);
+                  }}
+                />
+              ) : (
+                <div className="relative mr-3">
+                  <FaCar className="text-2xl text-blue-500" />
+                  <FaWrench className="absolute -bottom-1 -right-1 text-sm text-yellow-500" />
+                </div>
+              )}
+              <h1 className="text-xl font-bold text-gray-800">{nombreTaller}</h1>
             </div>
             <div className="flex items-center space-x-4">
               {/* Botones para usuarios NO autenticados */}
@@ -165,24 +209,28 @@ const HomePage = () => {
           }}
         ></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <div className="text-white">
-            <h2 className="text-5xl font-bold mb-4">
-              {isAuthenticated ? `Bienvenido a AutoFix, ${username}` : 'Bienvenido a AutoFix'}
-            </h2>
-            <p className="text-xl mb-8 max-w-2xl">
-              Sistema integral de gestión para talleres automotrices. 
-              Administra clientes, servicios, inventario y finanzas en un solo lugar.
-            </p>
+          <div className="w-full flex items-center justify-between gap-8">
+            <div className="text-white flex-1">
+              <h2 className="text-5xl font-bold mb-4">
+                {isAuthenticated ? `Bienvenido a ${nombreTaller}, ${username}` : `Bienvenido a ${nombreTaller}`}
+              </h2>
+              <p className="text-xl mb-8 max-w-2xl">
+                Sistema integral de gestión para talleres automotrices. 
+                Administra clientes, servicios, inventario y finanzas en un solo lugar.
+              </p>
+            </div>
             
             {/* Botón CTA para registrar taller - solo usuarios NO autenticados */}
             {!isAuthenticated && (
-              <button
-                onClick={() => navigate('/register-taller')}
-                className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                <FaStore className="mr-3 text-2xl" />
-                Registrar Mi Taller
-              </button>
+              <div className="flex-shrink-0">
+                <button
+                  onClick={() => navigate('/register-taller')}
+                  className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                >
+                  <FaStore className="mr-3 text-2xl" />
+                  Registrar Mi Taller
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -301,8 +349,8 @@ const HomePage = () => {
         <UserProfile onClose={() => setShowProfile(false)} />
       )}
 
-      {/* Floating Chatbot - Solo si está autenticado */}
-      {isAuthenticated && <FloatingChatbot />}
+      {/* Floating Chatbot - Público */}
+      <FloatingChatbot />
     </div>
   );
 };

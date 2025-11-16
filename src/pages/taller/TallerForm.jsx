@@ -85,7 +85,7 @@ const TallerForm = ({ taller, onSubmit, onCancel, loading }) => {
           name="nombre_taller"
           value={formData.nombre_taller}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
           placeholder="Nombre de tu taller"
           required
         />
@@ -103,7 +103,7 @@ const TallerForm = ({ taller, onSubmit, onCancel, loading }) => {
           name="ubicacion"
           value={formData.ubicacion}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
           placeholder="Dirección del taller"
         />
       </div>
@@ -120,7 +120,7 @@ const TallerForm = ({ taller, onSubmit, onCancel, loading }) => {
           name="telefono"
           value={formData.telefono}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
           placeholder="+591 12345678"
         />
       </div>
@@ -137,7 +137,7 @@ const TallerForm = ({ taller, onSubmit, onCancel, loading }) => {
           name="email_contacto"
           value={formData.email_contacto}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
           placeholder="contacto@taller.com"
         />
       </div>
@@ -154,7 +154,7 @@ const TallerForm = ({ taller, onSubmit, onCancel, loading }) => {
           value={formData.horarios}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400"
           placeholder="Ej: Lunes a Viernes 8:00-18:00, Sábado 9:00-14:00"
         />
       </div>
