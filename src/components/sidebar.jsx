@@ -15,6 +15,7 @@ import {
   FaCar,
   FaUser,
   FaBars,
+  FaDatabase,
 } from "react-icons/fa";
 import UserProfile from './UserProfile.jsx';
 import { useAuth } from '../hooks/useAuth.jsx';
@@ -119,6 +120,7 @@ const Sidebar = ({ isVisible = true, onToggle, onMenuItemsReady }) => {
   { name: "Asistencia", path: "/admin/asistencias" },
   { name: "Nómina", path: "/admin/nominas" },
   { name: "Bitácora", path: "/admin/bitacora" },
+  { name: "Backup/Restore", path: "/admin/backup" },
       ],
     },
     {
