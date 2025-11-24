@@ -28,6 +28,7 @@ import ServicioPage from "@/pages/servicios/ServicioPage.jsx"; // <-- CORREGIDO
 import AreaPage from "@/pages/area/areaPage.jsx"; // <-- CORREGIDO
 import VehiculoPage from "@/pages/vehiculos/VehiculoPage.jsx"; // <-- CORREGIDO
 import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
+import AsistenciaPage from "@/pages/asistencias/AsistenciaPage.jsx"; // <-- Asistencias
 import PagosList from "@/pages/pagos/PagosList.jsx"; // <-- Módulo de Pagos
 import PagoDetalle from "@/pages/pagos/PagoDetalle.jsx"; // <-- Módulo de Pagos
 import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pagos
@@ -38,6 +39,7 @@ import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo 
 import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.jsx"; // <-- Módulo de Facturas Proveedor
 import ReportesPage from "@/pages/reportes/ReportesPage.jsx"; // <-- Módulo de Reportes
 import TallerPage from "@/pages/taller/TallerPage.jsx"; // <-- Mi Taller
+import BackupPage from "@/pages/backup/BackupPage.jsx"; // <-- Backup y Restore
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -192,6 +194,7 @@ const AppRouter = () => {
           <Route path="/admin/usuarios" element={(role === 'admin') ? <UserPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/cargos" element={(role === 'admin') ? <CargoPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/empleados" element={(role === 'admin') ? <EmpleadoPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/asistencias" element={(role === 'admin') ? <AsistenciaPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/roles" element={(role === 'admin') ? <RolePage /> : <Navigate to="/admin/home" replace />} />
           {/* Clientes: admin y empleado */}
           <Route path="/admin/clientes" element={(role === 'admin' || role === 'empleado') ? <ClientePage /> : <Navigate to="/admin/home" replace />} />
@@ -224,6 +227,8 @@ const AppRouter = () => {
           <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reportes */}
           <Route path="/admin/finanzas/reportes" element={(role === 'admin') ? <ReportesPage /> : <Navigate to="/admin/home" replace />} />
+          {/* Ruta para backup y restore */}
+          <Route path="/admin/backup" element={(role === 'admin') ? <BackupPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
           <Route path="/admin/reconocimiento" element={(role === 'admin' || role === 'empleado') ? <ReconocimientoPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para proveedores */}
