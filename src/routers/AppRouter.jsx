@@ -35,6 +35,7 @@ import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo 
 import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.jsx"; // <-- Módulo de Facturas Proveedor
 import ReportesPage from "@/pages/reportes/ReportesPage.jsx"; // <-- Módulo de Reportes
 import TallerPage from "@/pages/taller/TallerPage.jsx"; // <-- Mi Taller
+import BackupPage from "@/pages/backup/BackupPage.jsx"; // <-- Backup y Restore
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -166,6 +167,8 @@ const AppRouter = () => {
           <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reportes */}
           <Route path="/admin/finanzas/reportes" element={(role === 'admin') ? <ReportesPage /> : <Navigate to="/admin/home" replace />} />
+          {/* Ruta para backup y restore */}
+          <Route path="/admin/backup" element={(role === 'admin') ? <BackupPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
           <Route path="/admin/reconocimiento" element={(role === 'admin' || role === 'empleado') ? <ReconocimientoPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para proveedores */}
