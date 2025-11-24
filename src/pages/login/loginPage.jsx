@@ -22,7 +22,7 @@ const navigate = useNavigate(); // 👈 Instanciar el hook
       if (role === 'admin' || role === 'empleado') {
         window.location.href = "/admin/dashboard";
       } else if (role === 'cliente') {
-        window.location.href = "/admin/home";
+        window.location.href = "/cliente/inicio"; // 👈 Redirigir a dashboard de cliente
       } else {
         // Fallback si no hay rol definido
         window.location.href = "/admin/home";

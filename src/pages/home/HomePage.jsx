@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTachometerAlt, FaUser, FaSignOutAlt, FaChevronDown, FaClipboardList, FaCalendarAlt, FaStore } from 'react-icons/fa';
+import { FaCar, FaWrench, FaOilCan, FaCogs, FaChartLine, FaBolt, FaTools, FaTachometerAlt, FaUser, FaSignOutAlt, FaChevronDown, FaClipboardList, FaCalendarAlt, FaStore, FaMoneyBillWave, FaCarSide } from 'react-icons/fa';
 import UserProfile from '@/components/UserProfile';
 import FloatingChatbot from '@/components/FloatingChatbot';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,16 +23,18 @@ const HomePage = () => {
     const storedRole = localStorage.getItem('userRole') || 'invitado';
     const token = localStorage.getItem('access');
     
-    setIsAuthenticated(!!token);
+    const authenticated = !!token;
+    setIsAuthenticated(authenticated);
     setUsername(storedUsername || 'Usuario');
     setUserRole(storedRole);
     
     console.log('🔵 [HomePage] Username:', storedUsername);
     console.log('🔵 [HomePage] Role:', storedRole);
-    console.log('🔵 [HomePage] IsAuthenticated:', !!token);
+    console.log('🔵 [HomePage] IsAuthenticated:', authenticated);
+    console.log('🔵 [HomePage] Token presente:', !!token);
 
     // Si está autenticado, obtener datos del taller
-    if (token) {
+    if (authenticated && token) {
       const fetchTallerInfo = async () => {
         try {
           const tallerData = await obtenerPerfilTaller();
@@ -55,9 +57,10 @@ const HomePage = () => {
       };
       fetchTallerInfo();
     } else {
-      // Si NO está autenticado, usar valores por defecto
+      // Si NO está autenticado, usar valores por defecto y limpiar
       setNombreTaller('AutoFix');
       setLogoTaller(null);
+      setShowUserDropdown(false); // Asegurar que el dropdown esté cerrado
     }
   }, []);
 
@@ -103,7 +106,7 @@ const HomePage = () => {
               {!isAuthenticated && (
                 <>
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => window.location.href = '/login'}
                     className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
                     Iniciar Sesión
@@ -177,6 +180,28 @@ const HomePage = () => {
                           >
                             <FaCalendarAlt className="mr-3 text-gray-400" />
                             Mis Citas
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log('🔵 [HomePage] Click en Mis Pagos');
+                              setShowUserDropdown(false);
+                              navigate('/mis-pagos');
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <FaMoneyBillWave className="mr-3 text-gray-400" />
+                            Mis Pagos
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log('🔵 [HomePage] Click en Mis Vehículos');
+                              setShowUserDropdown(false);
+                              navigate('/mis-vehiculos');
+                            }}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            <FaCarSide className="mr-3 text-gray-400" />
+                            Mis Vehículos
                           </button>
                         </>
                       )}

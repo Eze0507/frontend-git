@@ -1,6 +1,12 @@
 
 @import "tailwindcss";
 
+/* Animación para spinner de carga */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Estilos personalizados para scrollbar del sidebar */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 8px;
