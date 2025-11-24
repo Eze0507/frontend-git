@@ -11,7 +11,8 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaQuestionCircle,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaHistory
 } from 'react-icons/fa';
 import { fetchVehiculosCliente } from '../../api/vehiculosApi';
 import { fetchAllOrdenes } from '../../api/ordenesApi';
@@ -296,6 +297,15 @@ const ClienteDashboard = () => {
                   <FaMoneyBillWave style={styles.userMenuIcon} />
                   <span>Mis Pagos</span>
                 </button>
+                <button 
+                  onClick={() => { navigate('/cliente/historial'); setShowUserMenu(false); }}
+                  style={styles.userMenuItem}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  <FaHistory style={styles.userMenuIcon} />
+                  <span>Historial de Servicios</span>
+                </button>
                 <div style={styles.userMenuDivider}></div>
                 <button 
                   onClick={handleLogout}
@@ -460,6 +470,24 @@ const ClienteDashboard = () => {
               <h4 style={styles.actionTitle}>Pagos</h4>
               <p style={styles.actionDescription}>
                 {stats.pagosPendientes} {stats.pagosPendientes === 1 ? 'pago pendiente' : 'pagos pendientes'}
+              </p>
+            </div>
+
+            <div 
+              style={{
+                ...styles.actionCard,
+                ...(hoveredCard === 'historial' && styles.actionCardHover)
+              }}
+              onMouseEnter={() => setHoveredCard('historial')}
+              onMouseLeave={() => setHoveredCard(null)}
+              onClick={() => navigate('/cliente/historial')}
+            >
+              <div style={{...styles.actionIconCircle, background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'}}>
+                <FaHistory style={styles.actionIcon} />
+              </div>
+              <h4 style={styles.actionTitle}>Historial de Servicios</h4>
+              <p style={styles.actionDescription}>
+                Servicios completados
               </p>
             </div>
           </div>
@@ -775,7 +803,7 @@ const styles = {
   },
   quickAccessGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(5, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
     gap: '1rem',
     marginBottom: '3rem'
   },

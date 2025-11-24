@@ -1118,3 +1118,41 @@ export const deleteImagen = async (ordenId, imagenId) => {
     throw error;
   }
 };
+
+// ========== FUNCIÓN PARA HISTORIAL DE SERVICIOS ==========
+
+/**
+ * Obtener historial de servicios realizados (solo finalizadas/entregadas)
+ * @param {string|null} fechaDesde - Fecha desde (YYYY-MM-DD) opcional
+ * @param {string|null} fechaHasta - Fecha hasta (YYYY-MM-DD) opcional
+ * @returns {Promise<Array>} Lista de servicios realizados
+ */
+export const fetchHistorialServicios = async (fechaDesde = null, fechaHasta = null) => {
+  try {
+    console.log('🔄 Obteniendo historial de servicios...', { fechaDesde, fechaHasta });
+    
+    // Construir query params
+    const params = {};
+    if (fechaDesde) params.fecha_desde = fechaDesde;
+    if (fechaHasta) params.fecha_hasta = fechaHasta;
+    
+    const response = await apiClient.get('/ordenes/mi-historial/', { params });
+    console.log('✅ Historial recibido:', response.data);
+    
+    // Transformar datos del backend al formato esperado por el frontend
+    const historialTransformado = response.data.map(transformOrdenFromAPI);
+    console.log('✅ Historial transformado:', historialTransformado);
+    
+    return historialTransformado;
+  } catch (error) {
+    console.error('❌ Error al obtener historial de servicios:', error);
+    console.error('📄 Error response:', error.response?.data);
+    console.error('🔢 Status code:', error.response?.status);
+    
+    if (error.response?.status === 400) {
+      throw new Error(error.response.data.error || 'Error al cargar el historial de servicios.');
+    }
+    
+    throw new Error(`Error al cargar historial: ${error.response?.data?.detail || error.message}`);
+  }
+};

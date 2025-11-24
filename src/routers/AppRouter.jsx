@@ -19,6 +19,7 @@ import MisCitasPage from "@/pages/cliente/citas_cliente/MisCitasPage.jsx"; // <-
 import NuevaCitaPage from "@/pages/cliente/citas_cliente/NuevaCitaPage.jsx"; // <-- Página para crear nueva cita
 import ClienteDashboard from "@/pages/cliente/ClienteDashboard.jsx"; // <-- Dashboard de cliente
 import MiPerfilPage from "@/pages/cliente/MiPerfilPage.jsx"; // <-- Perfil del cliente
+import HistorialServiciosPage from "@/pages/cliente/HistorialServiciosPage.jsx"; // <-- Historial de servicios
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
@@ -173,6 +174,16 @@ const AppRouter = () => {
           element={
             isAuthenticated && role === 'cliente' 
               ? <MiPerfilPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+
+        {/* Historial de Servicios Cliente */}
+        <Route 
+          path="/cliente/historial" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <HistorialServiciosPage /> 
               : <Navigate to="/login" replace />
           } 
         />
