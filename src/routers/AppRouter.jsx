@@ -19,6 +19,7 @@ import MisCitasPage from "@/pages/cliente/citas_cliente/MisCitasPage.jsx"; // <-
 import NuevaCitaPage from "@/pages/cliente/citas_cliente/NuevaCitaPage.jsx"; // <-- Página para crear nueva cita
 import ClienteDashboard from "@/pages/cliente/ClienteDashboard.jsx"; // <-- Dashboard de cliente
 import MiPerfilPage from "@/pages/cliente/MiPerfilPage.jsx"; // <-- Perfil del cliente
+import HistorialServiciosPage from "@/pages/cliente/HistorialServiciosPage.jsx"; // <-- Historial de servicios
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
@@ -40,6 +41,8 @@ import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.
 import ReportesPage from "@/pages/reportes/ReportesPage.jsx"; // <-- Módulo de Reportes
 import TallerPage from "@/pages/taller/TallerPage.jsx"; // <-- Mi Taller
 import BackupPage from "@/pages/backup/BackupPage.jsx"; // <-- Backup y Restore
+import NominaPage from "@/pages/nomina/NominaPage.jsx"; // <-- Módulo de Nóminas
+import DetalleNominaPage from "@/pages/detallesnomina/DetalleNominaPage.jsx"; // <-- Detalles de Nómina
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("access");
@@ -177,6 +180,16 @@ const AppRouter = () => {
           } 
         />
 
+        {/* Historial de Servicios Cliente */}
+        <Route 
+          path="/cliente/historial" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <HistorialServiciosPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+
         {/* ===== RUTAS LEGACY - Redirigir a nuevas rutas ===== */}
         <Route path="/mis-ordenes" element={<Navigate to="/cliente/ordenes" replace />} />
         <Route path="/mis-citas" element={<Navigate to="/cliente/citas" replace />} />
@@ -227,6 +240,9 @@ const AppRouter = () => {
           <Route path="/admin/finanzas/facturas-proveedor" element={(role === 'admin') ? <FacturaProveedorPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reportes */}
           <Route path="/admin/finanzas/reportes" element={(role === 'admin') ? <ReportesPage /> : <Navigate to="/admin/home" replace />} />
+          {/* Ruta para nóminas */}
+          <Route path="/admin/nominas" element={(role === 'admin') ? <NominaPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/detallesnomina/:id" element={(role === 'admin') ? <DetalleNominaPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para backup y restore */}
           <Route path="/admin/backup" element={(role === 'admin') ? <BackupPage /> : <Navigate to="/admin/home" replace />} />
           {/* Ruta para reconocimiento de placas */}
