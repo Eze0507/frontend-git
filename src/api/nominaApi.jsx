@@ -96,3 +96,35 @@ export const fetchEstadisticasNomina = async () => {
     throw new Error('Error al obtener las estadísticas.');
   }
 };
+
+export const exportarNominaExcel = async (id) => {
+  try {
+    const response = await apiClient.get(`/nominas/${id}/exportar_excel/`, {
+      responseType: 'blob', // Importante para descargar archivos
+    });
+    
+    // Crear un enlace para descargar el archivo
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Obtener el nombre del archivo del header o usar uno por defecto
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = `nomina_${id}.xlsx`;
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (fileNameMatch.length === 2) {
+        fileName = fileNameMatch[1];
+      }
+    }
+    
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    return { success: true, message: 'Archivo descargado correctamente' };
+  } catch (error) {
+    throw new Error('Error al exportar la nómina a Excel.');
+  }
+};

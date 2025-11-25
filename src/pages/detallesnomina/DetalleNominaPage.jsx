@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DetalleNominaList from './DetalleNominaList.jsx';
 import { 
-  fetchNominaById
+  fetchNominaById,
+  exportarNominaExcel
 } from '../../api/nominaApi.jsx';
 import { 
   fetchDetallesNomina,
@@ -60,6 +61,19 @@ const DetalleNominaPage = () => {
     }
   };
 
+  const handleExportarExcel = async () => {
+    try {
+      setLoading(true);
+      await exportarNominaExcel(id);
+      alert('Reporte exportado correctamente');
+    } catch (error) {
+      console.error(error.message);
+      alert('Error al exportar el reporte');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative">
       {/* Encabezado con información de la nómina */}
@@ -74,9 +88,18 @@ const DetalleNominaPage = () => {
                 Estado: <span className="font-semibold">{nomina.estado_display || nomina.estado}</span>
               </p>
             </div>
-            <Button variant="primary" onClick={() => navigate('/admin/nominas')}>
-              ← Volver a Nóminas
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="success" 
+                onClick={handleExportarExcel}
+                disabled={loading}
+              >
+                📊 Exportar a Excel
+              </Button>
+              <Button variant="primary" onClick={() => navigate('/admin/nominas')}>
+                ← Volver a Nóminas
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
