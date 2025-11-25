@@ -41,7 +41,7 @@ const MisOrdenesPage = () => {
   };
 
   const handleVerDetalle = (orden) => {
-    navigate(`/mis-ordenes/${orden.id}`);
+    navigate(`/cliente/ordenes/${orden.id}`);
   };
 
   // Filtrado de órdenes
@@ -119,7 +119,7 @@ const MisOrdenesPage = () => {
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-3xl font-bold text-gray-900">Mis Órdenes de Trabajo</h1>
               <button
-                onClick={() => navigate('/home')}
+                onClick={() => navigate('/cliente/inicio')}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Volver
@@ -155,7 +155,7 @@ const MisOrdenesPage = () => {
               <p className="text-gray-600 mt-1">Historial completo de tus órdenes</p>
             </div>
             <button
-              onClick={() => navigate('/admin/home')}
+              onClick={() => navigate('/cliente/inicio')}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Volver

@@ -210,7 +210,7 @@ const MisCitasPage = () => {
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-3xl font-bold text-gray-900">Mis Citas</h1>
               <button
-                onClick={() => navigate('/admin/home')}
+                onClick={() => navigate('/cliente/inicio')}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Volver
@@ -253,7 +253,7 @@ const MisCitasPage = () => {
                 Nueva Cita
               </button>
               <button
-                onClick={() => navigate('/admin/home')}
+                onClick={() => navigate('/cliente/inicio')}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Volver

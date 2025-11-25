@@ -3,16 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaArrowLeft, FaMoneyBillWave, FaCreditCard, FaUniversity, 
-  FaCheckCircle, FaExclamationCircle, FaSpinner, FaUndo,
-  FaCalendar, FaUser, FaFileInvoice, FaInfoCircle
+  FaCheckCircle, FaExclamationCircle, FaSpinner,
+  FaCalendar, FaUser, FaFileInvoice, FaDownload, FaFilePdf, FaFileExcel
 } from 'react-icons/fa';
 import { 
   fetchPagoById, 
-  refundPayment, 
   getEstadoColor, 
   getMetodoIcon, 
   formatMonto 
 } from '../../api/pagosApi';
+import { obtenerPerfilTaller } from '../../api/tallerApi';
 
 const PagoDetalle = () => {
   const { pagoId } = useParams();
@@ -21,17 +21,40 @@ const PagoDetalle = () => {
   const [pago, setPago] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  const [mostrarModalReembolso, setMostrarModalReembolso] = useState(false);
-  const [reembolsoData, setReembolsoData] = useState({
-    monto: '',
-    razon: ''
-  });
-  const [procesandoReembolso, setProcesandoReembolso] = useState(false);
+  const [descargando, setDescargando] = useState(false);
+  const [tallerInfo, setTallerInfo] = useState(null);
+
+  // Determinar el rol del usuario para navegación correcta
+  const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+  const isCliente = userRole === 'cliente';
+  const listadoUrl = isCliente ? '/cliente/pagos' : '/pagos';
 
   useEffect(() => {
-    loadPagoDetalle();
+    // Solo cargar si pagoId es un número válido, no la cadena literal ':pagoId'
+    if (pagoId && pagoId !== ':pagoId' && !pagoId.includes(':')) {
+      loadPagoDetalle();
+      loadTallerInfo();
+    } else {
+      // Si el pagoId no es válido, detener el loading y mostrar error
+      setLoading(false);
+      setError('ID de pago no válido');
+    }
   }, [pagoId]);
+
+  const loadTallerInfo = async () => {
+    try {
+      const taller = await obtenerPerfilTaller();
+      setTallerInfo(taller);
+    } catch (err) {
+      console.log('No se pudo cargar info del taller, usando valores por defecto');
+      setTallerInfo({
+        nombre_taller: localStorage.getItem('nombre_taller') || 'AutoFix',
+        direccion: 'Dirección no disponible',
+        telefono: 'Teléfono no disponible',
+        email: 'Email no disponible'
+      });
+    }
+  };
 
   const loadPagoDetalle = async () => {
     try {
@@ -41,7 +64,6 @@ const PagoDetalle = () => {
       const response = await fetchPagoById(pagoId);
       console.log('📄 Detalle de pago:', response);
       setPago(response);
-      setReembolsoData(prev => ({ ...prev, monto: response.monto }));
     } catch (err) {
       console.error('❌ Error al cargar detalle:', err);
       setError('No se pudo cargar el detalle del pago.');
@@ -50,49 +72,347 @@ const PagoDetalle = () => {
     }
   };
 
-  const handleReembolso = async () => {
-    if (!reembolsoData.monto || parseFloat(reembolsoData.monto) <= 0) {
-      alert('El monto del reembolso debe ser mayor a 0');
-      return;
-    }
-
-    if (parseFloat(reembolsoData.monto) > parseFloat(pago.monto)) {
-      alert('El monto del reembolso no puede ser mayor al monto del pago');
-      return;
-    }
-
-    if (!reembolsoData.razon.trim()) {
-      alert('Debes especificar una razón para el reembolso');
-      return;
-    }
-
+  const handleDescargarPDF = async () => {
     try {
-      setProcesandoReembolso(true);
+      setDescargando(true);
       
-      const response = await refundPayment({
-        pago_id: pagoId,
-        monto: parseFloat(reembolsoData.monto),
-        razon: reembolsoData.razon
-      });
+      // Crear contenido HTML para el PDF
+      const contenidoHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page { size: A4; margin: 0; }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 30px 40px; 
+      max-width: 100%; 
+      margin: 0 auto;
+      font-size: 11px;
+    }
+    .taller-header { 
+      text-align: center; 
+      margin-bottom: 20px; 
+      padding-bottom: 15px; 
+      border-bottom: 2px solid #2563eb; 
+    }
+    .taller-header img { 
+      max-width: 80px; 
+      max-height: 80px; 
+      margin-bottom: 8px; 
+    }
+    .taller-header h1 { 
+      color: #1e40af; 
+      margin: 8px 0; 
+      font-size: 18px; 
+    }
+    .taller-info { 
+      color: #6b7280; 
+      font-size: 10px; 
+      margin: 3px 0; 
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 20px; 
+    }
+    .header h2 { 
+      color: #1e40af; 
+      margin: 8px 0; 
+      font-size: 20px; 
+    }
+    .section { 
+      margin-bottom: 15px; 
+      background: #f9fafb; 
+      padding: 12px; 
+      border-radius: 6px; 
+      page-break-inside: avoid;
+    }
+    .section h2 { 
+      color: #1f2937; 
+      font-size: 13px; 
+      margin: 0 0 8px 0; 
+      border-bottom: 1px solid #e5e7eb; 
+      padding-bottom: 6px; 
+    }
+    .row { 
+      display: flex; 
+      justify-content: space-between; 
+      padding: 5px 0; 
+      border-bottom: 1px solid #e5e7eb; 
+    }
+    .row:last-child { border-bottom: none; }
+    .label { color: #6b7280; font-weight: 500; font-size: 10px; }
+    .value { color: #111827; font-weight: 600; font-size: 10px; text-align: right; }
+    .badge { 
+      display: inline-block; 
+      padding: 4px 10px; 
+      border-radius: 15px; 
+      font-size: 10px; 
+      font-weight: 600; 
+    }
+    .badge-completado { background: #d1fae5; color: #065f46; }
+    .badge-procesando { background: #dbeafe; color: #1e40af; }
+    .badge-pendiente { background: #fef3c7; color: #92400e; }
+    .badge-fallido { background: #fee2e2; color: #991b1b; }
+    .monto { 
+      font-size: 24px; 
+      color: #059669; 
+      font-weight: bold; 
+      text-align: center; 
+      margin: 15px 0; 
+      padding: 10px;
+      background: #f0fdf4;
+      border-radius: 8px;
+    }
+    .grid-2 { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px; 
+    }
+    .footer { 
+      text-align: center; 
+      margin-top: 20px; 
+      padding-top: 15px; 
+      border-top: 1px solid #e5e7eb; 
+      color: #6b7280; 
+      font-size: 9px; 
+    }
+  </style>
+</head>
+<body>
+  ${tallerInfo ? `
+  <div class="taller-header">
+    ${tallerInfo.logo ? `<img src="${tallerInfo.logo}" alt="Logo" />` : ''}
+    <h1>${tallerInfo.nombre_taller || 'AutoFix'}</h1>
+    ${tallerInfo.direccion ? `<p class="taller-info">📍 ${tallerInfo.direccion}</p>` : ''}
+    <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+      ${tallerInfo.telefono ? `<span class="taller-info">📞 ${tallerInfo.telefono}</span>` : ''}
+      ${tallerInfo.email ? `<span class="taller-info">✉️ ${tallerInfo.email}</span>` : ''}
+      ${tallerInfo.nit ? `<span class="taller-info">NIT: ${tallerInfo.nit}</span>` : ''}
+    </div>
+  </div>
+  ` : ''}
 
-      console.log('✅ Reembolso procesado:', response);
-      alert('Reembolso procesado exitosamente');
+  <div class="header">
+    <h2>COMPROBANTE DE PAGO #${pago.id}</h2>
+    <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 10px;">Orden de Trabajo: ${pago.orden_trabajo}</p>
+  </div>
+
+  <div class="monto">Bs. ${formatMonto(pago.monto)}</div>
+
+  <div class="grid-2">
+    <div class="section">
+      <h2>📄 Información del Pago</h2>
+      <div class="row">
+        <span class="label">Método de Pago:</span>
+        <span class="value">${pago.metodo_pago_display}</span>
+      </div>
+      <div class="row">
+        <span class="label">Fecha de Pago:</span>
+        <span class="value">${new Date(pago.fecha_pago).toLocaleString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+      <div class="row">
+        <span class="label">Estado:</span>
+        <span class="value">
+          <span class="badge badge-${pago.estado}">${pago.estado_display}</span>
+        </span>
+      </div>
+      <div class="row">
+        <span class="label">Registrado por:</span>
+        <span class="value">${pago.usuario_nombre || 'N/A'}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📋 Información de la Orden</h2>
+      <div class="row">
+        <span class="label">Cliente:</span>
+        <span class="value">${pago.cliente_nombre || 'N/A'}</span>
+      </div>
+      <div class="row">
+        <span class="label">Número de Orden:</span>
+        <span class="value">${pago.orden_trabajo}</span>
+      </div>
+      ${pago.numero_referencia ? `
+      <div class="row">
+        <span class="label">N° Referencia:</span>
+        <span class="value" style="font-size: 9px;">${pago.numero_referencia}</span>
+      </div>` : ''}
+    </div>
+  </div>
+
+  ${pago.descripcion ? `
+  <div class="section">
+    <h2>📝 Descripción</h2>
+    <p style="margin: 0; font-size: 10px; color: #4b5563;">${pago.descripcion}</p>
+  </div>` : ''}
+
+  ${pago.metodo_pago === 'stripe' && pago.stripe_payment_intent_id ? `
+  <div class="section">
+    <h2>💳 Información de Stripe</h2>
+    <div class="row">
+      <span class="label">Payment Intent ID:</span>
+      <span class="value" style="font-size: 8px; word-break: break-all;">${pago.stripe_payment_intent_id}</span>
+    </div>
+    ${pago.stripe_charge_id ? `
+    <div class="row">
+      <span class="label">Charge ID:</span>
+      <span class="value" style="font-size: 8px; word-break: break-all;">${pago.stripe_charge_id}</span>
+    </div>` : ''}
+  </div>` : ''}
+
+  <div class="footer">
+    <p style="margin: 3px 0;">Documento generado el ${new Date().toLocaleString('es-BO')}</p>
+    <p style="margin: 3px 0;">Este es un comprobante electrónico válido</p>
+    ${tallerInfo ? `<p style="margin: 8px 0 0 0; font-weight: 600;">${tallerInfo.nombre_taller || 'AutoFix'}</p>` : ''}
+  </div>
+</body>
+</html>
+      `;
+
+      // Crear el PDF usando el método de impresión del navegador
+      const ventana = window.open('', '_blank');
+      ventana.document.write(contenidoHTML);
+      ventana.document.close();
       
-      setMostrarModalReembolso(false);
-      loadPagoDetalle(); // Recargar datos
+      // Esperar a que se cargue el contenido
+      setTimeout(() => {
+        ventana.print();
+      }, 250);
+      
     } catch (err) {
-      console.error('❌ Error al procesar reembolso:', err);
-      alert(err.response?.data?.error || 'Error al procesar el reembolso');
+      console.error('❌ Error al generar PDF:', err);
+      alert('Error al generar el PDF');
     } finally {
-      setProcesandoReembolso(false);
+      setDescargando(false);
     }
   };
 
-  const puedeReembolsar = () => {
-    if (!pago) return false;
-    return pago.estado === 'completado' && 
-           (pago.metodo_pago === 'stripe' || pago.metodo_pago === 'tarjeta');
+  const handleDescargarExcel = async () => {
+    try {
+      setDescargando(true);
+
+      // Crear datos para el CSV (compatible con Excel)
+      const datos = [];
+      
+      // Encabezado del taller (centrado)
+      if (tallerInfo) {
+        datos.push(['', '', tallerInfo.nombre_taller || 'Forza Automotriz', '', '']);
+        if (tallerInfo.direccion) {
+          datos.push(['', '', `📍 ${tallerInfo.direccion}`, '', '']);
+        }
+        const infoItems = [];
+        if (tallerInfo.telefono) infoItems.push(`📞 ${tallerInfo.telefono}`);
+        if (tallerInfo.email) infoItems.push(`✉️ ${tallerInfo.email}`);
+        if (tallerInfo.nit) infoItems.push(`NIT: ${tallerInfo.nit}`);
+        if (infoItems.length > 0) {
+          datos.push(['', '', infoItems.join('  |  '), '', '']);
+        }
+        datos.push(['════════════════════════════════════════════════════════════════', '', '', '', '']);
+        datos.push(['']);
+      }
+      
+      // Encabezado del comprobante
+      datos.push(['', '', `COMPROBANTE DE PAGO #${pago.id}`, '', '']);
+      datos.push(['', '', `Orden de Trabajo: ${pago.orden_trabajo}`, '', '']);
+      datos.push(['']);
+      
+      // Monto destacado
+      datos.push(['', '', `Bs. ${formatMonto(pago.monto)}`, '', '']);
+      datos.push(['']);
+      
+      // Encabezados de las dos columnas
+      datos.push(['📄 Información del Pago', '', '📋 Información de la Orden', '']);
+      datos.push(['']);
+      
+      // Contenido en dos columnas
+      datos.push([
+        'Método de Pago:',
+        pago.metodo_pago_display,
+        'Cliente:',
+        pago.cliente_nombre || 'N/A'
+      ]);
+      
+      datos.push([
+        'Fecha de Pago:',
+        new Date(pago.fecha_pago).toLocaleString('es-BO', { 
+          day: '2-digit', 
+          month: '2-digit', 
+          year: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }),
+        'Número de Orden:',
+        pago.orden_trabajo
+      ]);
+      
+      datos.push([
+        'Estado:',
+        pago.estado_display.toUpperCase(),
+        pago.numero_referencia ? 'N° Referencia:' : '',
+        pago.numero_referencia || ''
+      ]);
+      
+      datos.push([
+        'Registrado por:',
+        pago.usuario_nombre || 'N/A',
+        '',
+        ''
+      ]);
+      
+      datos.push(['']);
+      
+      // Descripción (si existe)
+      if (pago.descripcion) {
+        datos.push(['📝 Descripción']);
+        datos.push([pago.descripcion]);
+        datos.push(['']);
+      }
+      
+      // Información de Stripe (si existe)
+      if (pago.metodo_pago === 'stripe' && pago.stripe_payment_intent_id) {
+        datos.push(['💳 Información de Stripe']);
+        datos.push(['Payment Intent ID:', pago.stripe_payment_intent_id]);
+        if (pago.stripe_charge_id) {
+          datos.push(['Charge ID:', pago.stripe_charge_id]);
+        }
+        datos.push(['']);
+      }
+      
+      // Footer
+      datos.push(['════════════════════════════════════════════════════════════════']);
+      datos.push([`Documento generado el ${new Date().toLocaleString('es-BO', { 
+        day: '2-digit', 
+        month: 'long', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })}`]);
+      datos.push(['Este es un comprobante electrónico válido']);
+      datos.push(['']);
+      datos.push([tallerInfo?.nombre_taller || localStorage.getItem('nombre_taller') || 'Forza Automotriz']);
+      datos.push(['════════════════════════════════════════════════════════════════']);
+      
+      // Convertir a CSV con mejor formato
+      const csv = '\ufeff' + datos.map(fila => fila.join(',')).join('\n');
+      
+      // Descargar
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Pago_${pago.id}_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+
+    } catch (err) {
+      console.error('❌ Error al generar Excel:', err);
+      alert('Error al generar el archivo Excel');
+    } finally {
+      setDescargando(false);
+    }
   };
+
+
 
   if (loading) {
     return (
@@ -113,7 +433,7 @@ const PagoDetalle = () => {
           <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
           <p className="text-gray-600 mb-4">{error || 'No se encontró el pago'}</p>
           <button
-            onClick={() => navigate('/pagos')}
+            onClick={() => navigate(listadoUrl)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Volver al Listado
@@ -129,7 +449,7 @@ const PagoDetalle = () => {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => navigate('/pagos')}
+            onClick={() => navigate(listadoUrl)}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
           >
             <FaArrowLeft />
@@ -145,9 +465,29 @@ const PagoDetalle = () => {
                   Orden de Trabajo: <span className="font-semibold">{pago.orden_trabajo}</span>
                 </p>
               </div>
-              <span className={`px-4 py-2 rounded-full font-semibold ${getEstadoColor(pago.estado)}`}>
-                {pago.estado_display}
-              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleDescargarPDF}
+                  disabled={descargando}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Descargar PDF"
+                >
+                  <FaFilePdf />
+                  PDF
+                </button>
+                <button
+                  onClick={handleDescargarExcel}
+                  disabled={descargando}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Descargar Excel"
+                >
+                  <FaFileExcel />
+                  Excel
+                </button>
+                <span className={`px-4 py-2 rounded-full font-semibold ${getEstadoColor(pago.estado)}`}>
+                  {pago.estado_display}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -280,104 +620,7 @@ const PagoDetalle = () => {
           </div>
         )}
 
-        {/* Botón de reembolso */}
-        {puedeReembolsar() && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start gap-4">
-              <FaInfoCircle className="text-blue-600 text-xl flex-shrink-0 mt-1" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-800 mb-2">Reembolso Disponible</h4>
-                <p className="text-gray-600 text-sm mb-4">
-                  Este pago puede ser reembolsado total o parcialmente. El proceso de reembolso
-                  puede tardar entre 5-10 días hábiles en reflejarse en la cuenta del cliente.
-                </p>
-                <button
-                  onClick={() => setMostrarModalReembolso(true)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2"
-                >
-                  <FaUndo />
-                  Procesar Reembolso
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Modal de reembolso */}
-        {mostrarModalReembolso && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Procesar Reembolso</h3>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Monto a Reembolsar (Bs.)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={pago.monto}
-                  value={reembolsoData.monto}
-                  onChange={(e) => setReembolsoData(prev => ({ ...prev, monto: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="0.00"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Máximo: Bs. {formatMonto(pago.monto)}
-                </p>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Razón del Reembolso *
-                </label>
-                <textarea
-                  rows="3"
-                  value={reembolsoData.razon}
-                  onChange={(e) => setReembolsoData(prev => ({ ...prev, razon: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Explica el motivo del reembolso..."
-                  required
-                />
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-yellow-800">
-                  <strong>Advertencia:</strong> Esta acción no se puede deshacer. 
-                  El reembolso se procesará inmediatamente.
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setMostrarModalReembolso(false)}
-                  disabled={procesandoReembolso}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleReembolso}
-                  disabled={procesandoReembolso}
-                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {procesandoReembolso ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      Procesando...
-                    </>
-                  ) : (
-                    <>
-                      <FaUndo />
-                      Confirmar Reembolso
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

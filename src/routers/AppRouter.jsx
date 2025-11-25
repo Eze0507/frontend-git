@@ -17,6 +17,8 @@ import OrdenDetalle from "@/pages/ordenes/OrdenDetalle.jsx"; // <-- CORREGIDO
 import MisOrdenesPage from "@/pages/ordenes/MisOrdenesPage.jsx"; // <-- Página para clientes
 import MisCitasPage from "@/pages/cliente/citas_cliente/MisCitasPage.jsx"; // <-- Página de citas para clientes
 import NuevaCitaPage from "@/pages/cliente/citas_cliente/NuevaCitaPage.jsx"; // <-- Página para crear nueva cita
+import ClienteDashboard from "@/pages/cliente/ClienteDashboard.jsx"; // <-- Dashboard de cliente
+import MiPerfilPage from "@/pages/cliente/MiPerfilPage.jsx"; // <-- Perfil del cliente
 import PresupuestoPage from "@/pages/presupuestos/PresupuestoPage.jsx"; // <-- CORREGIDO
 import PresupuestoDetalle from "@/pages/presupuestos/PresupuestoDetalle.jsx"; // <-- CORREGIDO
 import PresupuestoForm from "../pages/presupuestos/PresupuestoForm.jsx";
@@ -26,9 +28,12 @@ import ServicioPage from "@/pages/servicios/ServicioPage.jsx"; // <-- CORREGIDO
 import AreaPage from "@/pages/area/areaPage.jsx"; // <-- CORREGIDO
 import VehiculoPage from "@/pages/vehiculos/VehiculoPage.jsx"; // <-- CORREGIDO
 import BitacoraPage from "@/pages/bitacora/BitacoraPage.jsx"; // <-- CORREGIDO
+import AsistenciaPage from "@/pages/asistencias/AsistenciaPage.jsx"; // <-- Asistencias
 import PagosList from "@/pages/pagos/PagosList.jsx"; // <-- Módulo de Pagos
 import PagoDetalle from "@/pages/pagos/PagoDetalle.jsx"; // <-- Módulo de Pagos
 import PagoCheckout from "@/pages/pagos/PagoCheckout.jsx"; // <-- Módulo de Pagos
+import MisPagosPage from "@/pages/pagos/MisPagosPage.jsx"; // <-- Mis Pagos para clientes
+import MisVehiculosPage from "@/pages/vehiculos/MisVehiculosPage.jsx"; // <-- Mis Vehículos para clientes
 import ReconocimientoPage from "@/pages/reconocimiento/ReconocimientoPage.jsx"; // <-- RECONOCIMIENTO DE PLACAS
 import ProveedorPage from "@/pages/proveedor/ProveedorPage.jsx"; // <-- Módulo de Proveedores
 import FacturaProveedorPage from "@/pages/facturaproveedor/FacturaProveedorPage.jsx"; // <-- Módulo de Facturas Proveedor
@@ -61,25 +66,25 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta por defecto - HomePage pública */}
+        {/* Ruta por defecto - HomePage pública o redirigir si está autenticado */}
         <Route
           path="/"
           element={
             isAuthenticated 
-              ? <Navigate to="/admin/home" replace />
+              ? (role === 'cliente' ? <Navigate to="/cliente/inicio" replace /> : <Navigate to="/admin/dashboard" replace />)
               : <HomePage />
           }
         />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register-taller" element={<TallerRegisterPage />} />
 
-        {/* Ruta de login - redirige si ya está autenticado */}
+        {/* Ruta de login - muestra HomePage con formulario superpuesto */}
         <Route 
           path="/login" 
           element={
             isAuthenticated 
-              ? (role === 'cliente' ? <Navigate to="/admin/home" replace /> : <Navigate to="/admin/dashboard" replace />)
-              : <LoginPage />
+              ? (role === 'cliente' ? <Navigate to="/cliente/inicio" replace /> : <Navigate to="/admin/dashboard" replace />)
+              : <><HomePage /><LoginPage /></>
           } 
         />
         
@@ -88,10 +93,21 @@ const AppRouter = () => {
           path="/admin/home" 
           element={isAuthenticated ? <HomePage /> : <Navigate to="/" replace />} 
         />
-        
-        {/* Mis Órdenes: solo clientes - Vista de solo lectura (sin sidebar) */}
+
+        {/* ===== RUTAS ESPECÍFICAS PARA CLIENTES ===== */}
+        {/* Dashboard Cliente - Página principal para clientes */}
         <Route 
-          path="/mis-ordenes" 
+          path="/cliente/inicio" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <ClienteDashboard /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+        
+        {/* Órdenes Cliente */}
+        <Route 
+          path="/cliente/ordenes" 
           element={
             isAuthenticated && role === 'cliente' 
               ? <MisOrdenesPage /> 
@@ -99,7 +115,7 @@ const AppRouter = () => {
           } 
         />
         <Route 
-          path="/mis-ordenes/:id" 
+          path="/cliente/ordenes/:id" 
           element={
             isAuthenticated && role === 'cliente' 
               ? <OrdenDetalle /> 
@@ -107,9 +123,9 @@ const AppRouter = () => {
           } 
         />
         
-        {/* Mis Citas: solo clientes - Vista de solo lectura (sin sidebar) */}
+        {/* Citas Cliente */}
         <Route 
-          path="/mis-citas" 
+          path="/cliente/citas" 
           element={
             isAuthenticated && role === 'cliente' 
               ? <MisCitasPage /> 
@@ -117,13 +133,58 @@ const AppRouter = () => {
           } 
         />
         <Route 
-          path="/mis-citas/nueva" 
+          path="/cliente/citas/nueva" 
           element={
             isAuthenticated && role === 'cliente' 
               ? <NuevaCitaPage /> 
               : <Navigate to="/login" replace />
           } 
         />
+
+        {/* Pagos Cliente */}
+        <Route 
+          path="/cliente/pagos" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <MisPagosPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+        <Route 
+          path="/cliente/pagos/:pagoId" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <PagoDetalle /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+
+        {/* Vehículos Cliente */}
+        <Route 
+          path="/cliente/vehiculos" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <MisVehiculosPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+
+        {/* Perfil Cliente */}
+        <Route 
+          path="/cliente/perfil" 
+          element={
+            isAuthenticated && role === 'cliente' 
+              ? <MiPerfilPage /> 
+              : <Navigate to="/login" replace />
+          } 
+        />
+
+        {/* ===== RUTAS LEGACY - Redirigir a nuevas rutas ===== */}
+        <Route path="/mis-ordenes" element={<Navigate to="/cliente/ordenes" replace />} />
+        <Route path="/mis-citas" element={<Navigate to="/cliente/citas" replace />} />
+        <Route path="/mis-citas/nueva" element={<Navigate to="/cliente/citas/nueva" replace />} />
+        <Route path="/mis-pagos" element={<Navigate to="/cliente/pagos" replace />} />
+        <Route path="/mis-vehiculos" element={<Navigate to="/cliente/vehiculos" replace />} />
 
         {/* Páginas del panel de administrador */}
         <Route element={<AdminRoutes />}>
@@ -135,6 +196,7 @@ const AppRouter = () => {
           <Route path="/admin/usuarios" element={(role === 'admin') ? <UserPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/cargos" element={(role === 'admin') ? <CargoPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/empleados" element={(role === 'admin') ? <EmpleadoPage /> : <Navigate to="/admin/home" replace />} />
+          <Route path="/admin/asistencias" element={(role === 'admin') ? <AsistenciaPage /> : <Navigate to="/admin/home" replace />} />
           <Route path="/admin/roles" element={(role === 'admin') ? <RolePage /> : <Navigate to="/admin/home" replace />} />
           {/* Clientes: admin y empleado */}
           <Route path="/admin/clientes" element={(role === 'admin' || role === 'empleado') ? <ClientePage /> : <Navigate to="/admin/home" replace />} />

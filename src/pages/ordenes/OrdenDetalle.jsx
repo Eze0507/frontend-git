@@ -105,7 +105,13 @@ const OrdenDetalle = () => {
   });
 
   useEffect(() => {
-    loadOrdenData();
+    // Solo cargar si id es un número válido, no la cadena literal ':id'
+    if (id && id !== ':id' && !id.includes(':')) {
+      loadOrdenData();
+    } else {
+      // Si el id no es válido, detener el loading
+      setLoading(false);
+    }
   }, [id]);
 
   // useEffect para cerrar el dropdown al hacer click fuera
@@ -652,10 +658,10 @@ const OrdenDetalle = () => {
       <div className="text-center py-8">
         <div className="text-lg text-gray-600">Orden no encontrada</div>
         <button
-          onClick={() => navigate("/ordenes")}
+          onClick={() => navigate(isCliente ? "/cliente/inicio" : "/ordenes")}
           className="mt-4 text-blue-600 hover:text-blue-800"
         >
-          Volver a la lista
+          Volver a {isCliente ? 'inicio' : 'la lista'}
         </button>
       </div>
     );
@@ -676,7 +682,7 @@ const OrdenDetalle = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate("/ordenes")}
+              onClick={() => navigate(isCliente ? "/cliente/inicio" : "/ordenes")}
               className="p-2 hover:bg-gray-700 rounded"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

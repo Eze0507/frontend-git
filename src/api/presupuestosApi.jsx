@@ -130,7 +130,7 @@ export const bulkCreateDetalles = async (detallesData) => {
 // ===== HELPERS =====
 export const fetchItemsForPresupuesto = async () => {
   try {
-    const response = await apiClient.get('/items/');
+    const response = await apiClient.get('/items/?exclude_taller=true');
     return response.data;
   } catch (error) {
     throw new Error('Error al obtener los items.');
