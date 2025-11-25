@@ -249,7 +249,7 @@ const HomePage = () => {
             {!isAuthenticated && (
               <div className="flex-shrink-0">
                 <button
-                  onClick={() => navigate('/register-taller')}
+                  onClick={() => navigate('/planes')}
                   className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   <FaStore className="mr-3 text-2xl" />

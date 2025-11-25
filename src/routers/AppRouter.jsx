@@ -8,6 +8,8 @@ import HomePage from "@/pages/home/HomePage.jsx"; // <-- CORREGIDO
 import LoginPage from "@/pages/login/loginPage.jsx"; // <-- CORREGIDO
 import RegisterPage from "@/pages/register/RegisterPage.jsx"; // <-- CORREGIDO
 import TallerRegisterPage from "@/pages/register/TallerRegisterPage.jsx"; // <-- Registro de Taller
+import PlanesPage from "@/pages/planes/PlanesPage.jsx"; // <-- Selección de Planes
+import SuscripcionExitoPage from "@/pages/suscripcion/SuscripcionExitoPage.jsx"; // <-- Éxito de suscripción
 import EmpleadoPage from "@/pages/empleados/EmpleadoPage.jsx"; // <-- CORREGIDO
 import RolePage from "@/pages/roles/rolePage.jsx"; // <-- CORREGIDO
 import ClientePage from "@/pages/cliente/ClientePage.jsx"; // <-- CORREGIDO
@@ -75,7 +77,9 @@ const AppRouter = () => {
           }
         />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/planes" element={<PlanesPage />} />
         <Route path="/register-taller" element={<TallerRegisterPage />} />
+        <Route path="/pago-exitoso" element={<SuscripcionExitoPage />} />
 
         {/* Ruta de login - muestra HomePage con formulario superpuesto */}
         <Route 
