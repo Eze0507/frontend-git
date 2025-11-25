@@ -17,12 +17,14 @@ import { fetchVehiculosCliente } from '../../api/vehiculosApi';
 import { fetchAllOrdenes } from '../../api/ordenesApi';
 import { fetchMisCitas } from '../../api/citasClienteApi';
 import { fetchPagos } from '../../api/pagosApi';
+import { obtenerPerfilTaller } from '../../api/tallerApi';
 import FloatingChatbot from '@/components/FloatingChatbot';
 
 const ClienteDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState('');
+  const [tallerInfo, setTallerInfo] = useState(null);
   
   // Estados para datos del backend
   const [vehiculos, setVehiculos] = useState([]);
@@ -70,6 +72,15 @@ const ClienteDashboard = () => {
       // Obtener nombre de usuario
       const storedUsername = localStorage.getItem('username') || 'Cliente';
       setUsername(storedUsername);
+
+      // Cargar información del taller
+      try {
+        const tallerData = await obtenerPerfilTaller();
+        console.log('🏢 Información del taller:', tallerData);
+        setTallerInfo(tallerData);
+      } catch (err) {
+        console.error('Error cargando información del taller:', err);
+      }
 
       // Cargar datos en paralelo
       const [vehiculosData, ordenesData, citasData, pagosData] = await Promise.all([
@@ -221,6 +232,39 @@ const ClienteDashboard = () => {
             Aquí está el resumen de tus servicios automotrices
           </p>
         </div>
+
+        {/* Información del Taller en el centro */}
+        {tallerInfo && (
+          <div style={styles.tallerInfoCenter}>
+            {tallerInfo.logo && (
+              <img 
+                src={tallerInfo.logo} 
+                alt={tallerInfo.nombre_taller}
+                style={styles.tallerLogoCentral}
+              />
+            )}
+            <div style={styles.tallerDetailsCenter}>
+              <h2 style={styles.tallerNombreCenter}>{tallerInfo.nombre_taller || 'Taller Automotriz'}</h2>
+              <div style={styles.tallerContactCenter}>
+                {tallerInfo.telefono && (
+                  <div style={styles.tallerContactItemCenter}>
+                    <span>📞</span>
+                    <a href={`tel:${tallerInfo.telefono}`} style={styles.tallerLinkCenter}>
+                      {tallerInfo.telefono}
+                    </a>
+                  </div>
+                )}
+                {tallerInfo.ubicacion && (
+                  <div style={styles.tallerContactItemCenter}>
+                    <span>📍</span>
+                    <span style={styles.tallerTextCenter}>{tallerInfo.ubicacion}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div style={styles.heroRightSection}>
           <div style={styles.heroStats}>
             <div style={styles.heroStatItem}>
@@ -555,6 +599,61 @@ const styles = {
       flexDirection: 'column',
       textAlign: 'center'
     }
+  },
+  tallerInfoCenter: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5rem',
+    padding: '1rem 2rem',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: '16px',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    flex: '1',
+    justifyContent: 'center',
+    maxWidth: '600px'
+  },
+  tallerLogoCentral: {
+    width: '70px',
+    height: '70px',
+    objectFit: 'contain',
+    borderRadius: '12px',
+    backgroundColor: 'white',
+    padding: '0.5rem',
+    border: '2px solid rgba(255, 255, 255, 0.3)'
+  },
+  tallerDetailsCenter: {
+    flex: 1
+  },
+  tallerNombreCenter: {
+    fontSize: '1.3rem',
+    fontWeight: '700',
+    color: 'white',
+    marginBottom: '0.5rem',
+    margin: '0 0 0.5rem 0',
+    textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+  },
+  tallerContactCenter: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4rem'
+  },
+  tallerContactItemCenter: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.9rem'
+  },
+  tallerLinkCenter: {
+    color: 'white',
+    textDecoration: 'none',
+    fontWeight: '500',
+    transition: 'opacity 0.2s',
+    opacity: 0.95
+  },
+  tallerTextCenter: {
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontSize: '0.9rem'
   },
   heroTitle: {
     fontSize: '2.5rem',

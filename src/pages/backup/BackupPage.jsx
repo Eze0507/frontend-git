@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaDownload, FaUpload, FaExclamationTriangle, FaCheckCircle, FaSpinner, FaInfoCircle } from 'react-icons/fa';
 import { createBackup, restoreBackup } from '../../api/backupApi';
+import AutoBackupScheduler from './AutoBackupScheduler';
 
 const BackupPage = () => {
   const [loadingBackup, setLoadingBackup] = useState(false);
@@ -239,6 +240,9 @@ const BackupPage = () => {
           </form>
         </div>
       </div>
+
+      {/* Componente de Backup Automático */}
+      <AutoBackupScheduler onTriggerBackup={handleCreateBackup} />
 
       {/* Resumen de Restauración */}
       {restoreSummary && (
