@@ -172,19 +172,6 @@ export const generarReporteNatural = async (data) => {
 };
 
 /**
- * Obtiene ejemplos de consultas en lenguaje natural
- */
-export const obtenerEjemplosNL = async () => {
-  try {
-    const response = await api.get('/ia/reportes/ejemplos-nl/');
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener ejemplos:', error);
-    throw error;
-  }
-};
-
-/**
  * Obtiene la URL de descarga de un reporte
  * @param {number} reporteId - ID del reporte
  */
@@ -201,7 +188,6 @@ export default {
   obtenerEntidades,
   generarReportePersonalizado,
   generarReporteNatural,
-  obtenerEjemplosNL,
   obtenerHistorialReportes,
   descargarReporte,
   obtenerUrlDescarga,
