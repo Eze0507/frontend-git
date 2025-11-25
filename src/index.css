@@ -7,6 +7,22 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Animación para toast notifications */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
 /* Estilos personalizados para scrollbar del sidebar */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 8px;
