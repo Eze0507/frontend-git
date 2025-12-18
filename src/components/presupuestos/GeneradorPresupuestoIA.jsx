@@ -1,40 +1,120 @@
 // src/components/presupuestos/GeneradorPresupuestoIA.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaMagic, FaTimes, FaSpinner, FaPlus, FaCheckCircle, FaExclamationTriangle, FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa';
 import { generarPresupuestoConIA } from '../../api/presupuestosApi';
-import useSpeechRecognitionHook from '../../hooks/useSpeechRecognition';
 
 const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) => {
   const [sintomas, setSintomas] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
+  const [micError, setMicError] = useState('');
+  const [listening, setListening] = useState(false);
+  
+  const recognitionRef = useRef(null);
 
-  // Hook de reconocimiento de voz
-  const {
-    transcript,
-    listening,
-    startListening,
-    stopListening,
-    clearTranscript,
-    browserSupportsSpeechRecognition
-  } = useSpeechRecognitionHook();
-
-  // Actualizar el campo de síntomas con la transcripción
+  // Inicializar Web Speech API nativa
   useEffect(() => {
-    if (transcript) {
-      setSintomas(transcript);
-    }
-  }, [transcript]);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'es-ES';
 
-  // Función para alternar micrófono
-  const toggleMicrophone = () => {
+      recognition.onstart = () => {
+        console.log('Reconocimiento de voz iniciado');
+        setListening(true);
+        setMicError('');
+      };
+
+      recognition.onresult = (event) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          }
+        }
+
+        if (finalTranscript) {
+          setSintomas(prev => prev + finalTranscript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Error en reconocimiento de voz:', event.error);
+        setListening(false);
+        
+        switch(event.error) {
+          case 'not-allowed':
+          case 'service-not-allowed':
+            setMicError('❌ Acceso al micrófono denegado. Por favor, permite el acceso en la configuración del navegador.');
+            break;
+          case 'no-speech':
+            setMicError('⚠️ No se detectó ningún audio. Intenta hablar más cerca del micrófono.');
+            break;
+          case 'network':
+            setMicError('❌ Error de conexión. Verifica tu conexión a internet.');
+            break;
+          case 'aborted':
+            // No mostrar error si fue detenido manualmente
+            break;
+          default:
+            setMicError(`❌ Error: ${event.error}`);
+        }
+      };
+
+      recognition.onend = () => {
+        console.log('Reconocimiento de voz terminado');
+        setListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignorar error si ya estaba detenido
+        }
+      }
+    };
+  }, []);
+
+  const toggleMicrophone = async () => {
+    if (!recognitionRef.current) {
+      setMicError('❌ El reconocimiento de voz no está disponible en tu navegador. Usa Chrome, Edge o Safari.');
+      return;
+    }
+
+    setMicError('');
+
     if (listening) {
-      stopListening();
+      recognitionRef.current.stop();
+      setListening(false);
     } else {
-      clearTranscript();
-      setSintomas('');
-      startListening();
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error('Error al acceder al micrófono:', err);
+        setListening(false);
+        
+        if (err.name === 'NotAllowedError') {
+          setMicError('❌ Acceso al micrófono bloqueado. Haz clic en el candado 🔒 de la URL y permite el acceso.');
+        } else if (err.name === 'NotFoundError') {
+          setMicError('❌ No se detectó ningún micrófono en tu dispositivo.');
+        } else if (err.name === 'NotSupportedError') {
+          setMicError('❌ El reconocimiento de voz no está soportado. Usa Chrome, Edge o Safari.');
+        } else {
+          setMicError(`❌ Error: ${err.message}`);
+        }
+      }
     }
   };
 
@@ -78,10 +158,14 @@ const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) =>
     setSintomas('');
     setResultado(null);
     setError('');
-    if (listening) {
-      stopListening();
+    setMicError('');
+    if (listening && recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Ignorar error si ya estaba detenido
+      }
     }
-    clearTranscript();
     onClose();
   };
 
@@ -128,7 +212,7 @@ const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) =>
                 disabled={loading || resultado}
               />
               {/* Botón de micrófono */}
-              {browserSupportsSpeechRecognition && !resultado && (
+              {!resultado && (
                 <button
                   type="button"
                   onClick={toggleMicrophone}
@@ -148,14 +232,24 @@ const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) =>
                 </button>
               )}
             </div>
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-500">
-                💡 Sé específico: describe ruidos, comportamientos anormales, olores, etc.
-              </p>
-              {listening && (
-                <p className="text-xs text-red-600 font-semibold animate-pulse">
-                  🎤 Escuchando...
+            <div className="flex flex-col gap-2 mt-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">
+                  💡 Sé específico: describe ruidos, comportamientos anormales, olores, etc.
                 </p>
+                {listening && (
+                  <p className="text-xs text-red-600 font-semibold animate-pulse flex items-center gap-1">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                    Escuchando...
+                  </p>
+                )}
+              </div>
+              {/* Error de micrófono */}
+              {micError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg flex items-start text-xs">
+                  <FaExclamationTriangle className="mt-0.5 mr-2 flex-shrink-0" />
+                  <span>{micError}</span>
+                </div>
               )}
             </div>
           </div>
