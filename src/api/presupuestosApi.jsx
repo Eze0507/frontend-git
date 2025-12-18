@@ -167,3 +167,17 @@ export const checkUserPermissions = () => {
     canView: true
   };
 };
+
+// ===== GENERADOR CON IA =====
+export const generarPresupuestoConIA = async (sintomas) => {
+  try {
+    const response = await apiClient.post('/ia/presupuesto-ia/', { sintomas });
+    return response.data;
+  } catch (error) {
+    console.error('Error al generar presupuesto con IA:', error);
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    }
+    throw new Error('Error al generar el presupuesto con IA. Intenta de nuevo.');
+  }
+};

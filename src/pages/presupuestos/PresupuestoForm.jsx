@@ -10,7 +10,8 @@ import {
   fetchClientesForPresupuesto
 } from '../../api/presupuestosApi';
 import { fetchAllClientes } from '../../api/clientesApi';
-import { FaPlus, FaTrash, FaSave, FaArrowLeft, FaCalculator } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaSave, FaArrowLeft, FaCalculator, FaMagic } from 'react-icons/fa';
+import GeneradorPresupuestoIA from '../../components/presupuestos/GeneradorPresupuestoIA';
 
 const PresupuestoForm = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const PresupuestoForm = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showGeneradorIA, setShowGeneradorIA] = useState(false);
 
   // Estados para datos auxiliares
   const [clientes, setClientes] = useState([]);
@@ -209,6 +211,31 @@ const PresupuestoForm = () => {
     }
   };
 
+  const handleItemsGeneradosIA = (itemsIA, horasManoObra) => {
+    // Crear nuevos detalles con los items sugeridos por la IA
+    const nuevosDetalles = itemsIA.map(item => ({
+      item: item.id.toString(),
+      cantidad: '1.00',
+      precio_unitario: item.precio ? item.precio.toString() : '0.00',
+      descuento_porcentaje: '0.00'
+    }));
+
+    // Si hay detalles vacíos, reemplazarlos; si no, agregarlos
+    if (detalles.length === 1 && !detalles[0].item) {
+      setDetalles(nuevosDetalles);
+    } else {
+      setDetalles([...detalles, ...nuevosDetalles]);
+    }
+
+    // Actualizar el diagnóstico con las horas de mano de obra si está vacío
+    if (!formData.diagnostico && horasManoObra) {
+      setFormData(prev => ({
+        ...prev,
+        diagnostico: `Mano de obra estimada: ${horasManoObra} horas`
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -299,6 +326,16 @@ const PresupuestoForm = () => {
               {isEditing ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
             </h1>
           </div>
+          
+          {/* Botón Generar con IA */}
+          <button
+            type="button"
+            onClick={() => setShowGeneradorIA(true)}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
+          >
+            <FaMagic className="text-lg" />
+            <span className="font-medium">Generar con IA</span>
+          </button>
         </div>
       </div>
 
@@ -427,6 +464,7 @@ const PresupuestoForm = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-800">Detalles del Presupuesto</h2>
+            
             <button
               type="button"
               onClick={addDetalle}
@@ -648,6 +686,14 @@ const PresupuestoForm = () => {
           </button>
         </div>
       </form>
+
+      {/* Modal Generador de Presupuestos con IA */}
+      <GeneradorPresupuestoIA
+        isOpen={showGeneradorIA}
+        onClose={() => setShowGeneradorIA(false)}
+        onItemsGenerated={handleItemsGeneradosIA}
+        items={items}
+      />
     </div>
   );
 };
