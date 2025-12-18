@@ -1,13 +1,42 @@
 // src/components/presupuestos/GeneradorPresupuestoIA.jsx
-import React, { useState } from 'react';
-import { FaMagic, FaTimes, FaSpinner, FaPlus, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaMagic, FaTimes, FaSpinner, FaPlus, FaCheckCircle, FaExclamationTriangle, FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa';
 import { generarPresupuestoConIA } from '../../api/presupuestosApi';
+import useSpeechRecognitionHook from '../../hooks/useSpeechRecognition';
 
 const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) => {
   const [sintomas, setSintomas] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
+
+  // Hook de reconocimiento de voz
+  const {
+    transcript,
+    listening,
+    startListening,
+    stopListening,
+    clearTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognitionHook();
+
+  // Actualizar el campo de síntomas con la transcripción
+  useEffect(() => {
+    if (transcript) {
+      setSintomas(transcript);
+    }
+  }, [transcript]);
+
+  // Función para alternar micrófono
+  const toggleMicrophone = () => {
+    if (listening) {
+      stopListening();
+    } else {
+      clearTranscript();
+      setSintomas('');
+      startListening();
+    }
+  };
 
   const handleGenerar = async () => {
     if (!sintomas.trim()) {
@@ -49,6 +78,10 @@ const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) =>
     setSintomas('');
     setResultado(null);
     setError('');
+    if (listening) {
+      stopListening();
+    }
+    clearTranscript();
     onClose();
   };
 
@@ -85,17 +118,46 @@ const GeneradorPresupuestoIA = ({ isOpen, onClose, onItemsGenerated, items }) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Describe los síntomas del vehículo
             </label>
-            <textarea
-              value={sintomas}
-              onChange={(e) => setSintomas(e.target.value)}
-              placeholder='Ejemplo: "El cliente reporta ruido metálico al frenar y el pedal se siente esponjoso"'
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows={4}
-              disabled={loading || resultado}
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              💡 Sé específico: describe ruidos, comportamientos anormales, olores, etc.
-            </p>
+            <div className="relative">
+              <textarea
+                value={sintomas}
+                onChange={(e) => setSintomas(e.target.value)}
+                placeholder='Ejemplo: "El cliente reporta ruido metálico al frenar y el pedal se siente esponjoso"'
+                className="w-full px-4 py-3 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={4}
+                disabled={loading || resultado}
+              />
+              {/* Botón de micrófono */}
+              {browserSupportsSpeechRecognition && !resultado && (
+                <button
+                  type="button"
+                  onClick={toggleMicrophone}
+                  disabled={loading}
+                  className={`absolute right-3 top-3 p-2 rounded-full transition-all duration-200 ${
+                    listening 
+                      ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse' 
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={listening ? 'Detener grabación' : 'Iniciar grabación de voz'}
+                >
+                  {listening ? (
+                    <FaMicrophoneSlash className="text-lg" />
+                  ) : (
+                    <FaMicrophone className="text-lg" />
+                  )}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-gray-500">
+                💡 Sé específico: describe ruidos, comportamientos anormales, olores, etc.
+              </p>
+              {listening && (
+                <p className="text-xs text-red-600 font-semibold animate-pulse">
+                  🎤 Escuchando...
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Botón generar */}
